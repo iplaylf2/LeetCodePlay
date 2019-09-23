@@ -13,7 +13,10 @@ const main = async function() {
     for (const name of codeNameArray) {
       taskArray.push(
         (async () => {
-          const leetCodeCell = `[${name}](https://leetcode-cn.com/problems/${name}/)`;
+          const leetCodeCell = `[${name.replace(
+            /-/g,
+            " "
+          )}](https://leetcode-cn.com/problems/${name}/)`;
           const meyCodeCell = `[code](https://github.com/Iplaylf2/LeetCodePlay/tree/master/code/${name})`;
           var remarkCell = "";
           try {
