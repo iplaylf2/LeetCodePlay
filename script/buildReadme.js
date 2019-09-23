@@ -4,6 +4,7 @@ const main = async function() {
   const codeNameArray = await fs.readdir("code");
 
   const intro = `
+按顺序做题，力求当前语言下的最优解。  
 目前进度为${codeNameArray.length}条。  
 `;
 

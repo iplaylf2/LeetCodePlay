@@ -1,4 +1,5 @@
 
+按顺序做题，力求当前语言下的最优解。  
 目前进度为29条。  
 
 |leetcode-cn|my code|remark|
