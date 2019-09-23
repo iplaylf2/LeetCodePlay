@@ -1,0 +1,18 @@
+{
+  "name": "leetcodeplay",
+  "version": "1.0.0",
+  "description": "build readme",
+  "scripts": {
+    "build": "node script/buildReadme.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Iplaylf2/LeetCodePlay.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Iplaylf2/LeetCodePlay/issues"
+  },
+  "homepage": "https://github.com/Iplaylf2/LeetCodePlay#readme"
+}
