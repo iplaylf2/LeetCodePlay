@@ -7,10 +7,11 @@ var longestCommonPrefix = function(strs) {
 
   var i = 0;
   for (const current of reference) {
-    if (!strs.every(s => s.charAt(i) === current)) {
+    if (strs.every(s => s.charAt(i) === current)) {
+      i++;
+    } else {
       return reference.substring(0, i);
     }
-    i++;
   }
 
   return reference;
