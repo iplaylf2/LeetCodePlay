@@ -9,9 +9,10 @@ var lengthOfLongestSubstring = function(s) {
 
   var i = 0;
   for (var c of s) {
-    if (map.has(c)) {
+    const lastC = map.get(c);
+    if (lastC !== undefined) {
       max = Math.max(i - left, max);
-      left = Math.max(map.get(c) + 1, left);
+      left = Math.max(lastC + 1, left);
     }
 
     map.set(c, i++);

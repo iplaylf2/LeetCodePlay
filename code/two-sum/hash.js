@@ -9,11 +9,12 @@ var twoSum = function(nums, target) {
   var i = 1;
   for (const n of nums) {
     const before = target - n;
-    if (map.has(before)) {
-      return [map.get(before), i];
-    } else {
+    const beforeIndex = map.get(before);
+    if (beforeIndex === undefined) {
       map.set(n, i);
       i++;
+    } else {
+      return [beforeIndex, i];
     }
   }
 };

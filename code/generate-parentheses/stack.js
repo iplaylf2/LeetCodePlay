@@ -8,8 +8,10 @@ var generateParenthesis = function(n) {
 
 const getRecord = function(stack, rest) {
   const key = `${stack},${rest}`;
-  if (recordMap.has(key)) {
-    return recordMap.get(key);
+
+  const cache = recordMap.get(key);
+  if (cache) {
+    return cache;
   }
 
   const result = [];

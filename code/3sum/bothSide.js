@@ -44,9 +44,10 @@ var threeSum = function(nums) {
       if (ask < mid) {
         break;
       }
-      if (askMap.has(ask)) {
+      const askDuplicate = askMap.get(ask);
+      if (askDuplicate !== undefined) {
         if (ask === mid) {
-          if (askMap.get(ask)) {
+          if (askDuplicate) {
             answer.push([left, mid, ask]);
           }
           break;

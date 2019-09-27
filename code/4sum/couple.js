@@ -12,10 +12,8 @@ var fourSum = function(nums, target) {
   for (var i = 0; i !== nums.length - 1; i++) {
     for (var j = i + 1; j !== nums.length; j++) {
       const part = nums[i] + nums[j];
-      var group;
-      if (coupleMap.has(part)) {
-        group = coupleMap.get(part);
-      } else {
+      var group = coupleMap.get(part);
+      if (!group) {
         group = [];
         coupleMap.set(part, group);
       }
@@ -28,12 +26,12 @@ var fourSum = function(nums, target) {
   const resultMap = new Map();
   for (var [part, coupleGroup] of coupleMap) {
     const rest = target - part;
-    if (coupleMap.has(rest)) {
+    const restGroup = coupleMap.get(rest);
+    if (restGroup) {
       if (recoredSet.has(part)) {
         continue;
       }
 
-      const restGroup = coupleMap.get(rest);
       for (const a of coupleGroup) {
         for (const b of restGroup) {
           const fullIndex = a.concat(b);
