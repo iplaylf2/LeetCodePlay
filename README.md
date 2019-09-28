@@ -1,6 +1,6 @@
 
 按顺序做题，力求当前语言下的最优解。  
-目前进度为29条。  
+目前进度为30条。  
 
 |leetcode-cn|my code|remark|
 |:---------:|:-----:|:----:|
@@ -29,6 +29,7 @@
 |[reverse nodes in k group](https://leetcode-cn.com/problems/reverse-nodes-in-k-group/)|[code](https://github.com/Iplaylf2/LeetCodePlay/tree/master/code/reverse-nodes-in-k-group)||
 |[roman to integer](https://leetcode-cn.com/problems/roman-to-integer/)|[code](https://github.com/Iplaylf2/LeetCodePlay/tree/master/code/roman-to-integer)||
 |[string to integer atoi](https://leetcode-cn.com/problems/string-to-integer-atoi/)|[code](https://github.com/Iplaylf2/LeetCodePlay/tree/master/code/string-to-integer-atoi)|应使用其他语言。|
+|[substring with concatenation of all words](https://leetcode-cn.com/problems/substring-with-concatenation-of-all-words/)|[code](https://github.com/Iplaylf2/LeetCodePlay/tree/master/code/substring-with-concatenation-of-all-words)||
 |[swap nodes in pairs](https://leetcode-cn.com/problems/swap-nodes-in-pairs/)|[code](https://github.com/Iplaylf2/LeetCodePlay/tree/master/code/swap-nodes-in-pairs)||
 |[two sum](https://leetcode-cn.com/problems/two-sum/)|[code](https://github.com/Iplaylf2/LeetCodePlay/tree/master/code/two-sum)||
 |[valid parentheses](https://leetcode-cn.com/problems/valid-parentheses/)|[code](https://github.com/Iplaylf2/LeetCodePlay/tree/master/code/valid-parentheses)||
