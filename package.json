@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "description": "build readme",
   "scripts": {
-    "build": "node script/buildReadme.js"
+    "build": "node script/buildReadme.js",
+    "check": "npx eslint code/"
   },
   "repository": {
     "type": "git",
