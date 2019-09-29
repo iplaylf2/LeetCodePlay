@@ -12,18 +12,24 @@ var findSubstring = function(s, words) {
   for (var word of words) {
     wordMap.set(word, (wordMap.get(word) || 0) + 1);
   }
+  const wordRecord = new Map(
+    Array.from(wordMap.keys()).map(word => [word, { count: 0 }])
+  );
 
   const stringLength = s.length,
     wordCount = words.length,
     wordLength = words[0].length,
-    groupLength = wordCount * wordLength;
+    groupLength = wordCount * wordLength,
+    wordRecordArray = [],
+    clearWordRecordArray = function() {
+      for (var record of wordRecordArray) {
+        record.count = 0;
+      }
+      wordRecordArray.splice(0, wordRecordArray.length);
+    };
 
   const result = [];
-
   for (var start = 0; start !== wordLength; start++) {
-    const wordRecord = new Map(),
-      wordRecordArray = [];
-
     var head = start,
       g = 0,
       gIndex = head;
@@ -39,48 +45,39 @@ var findSubstring = function(s, words) {
 
       if (expect === undefined) {
         head = gTail;
+        clearWordRecordArray();
+
         if (head + groupLength > stringLength) {
           break;
         }
 
         g = 0;
         gIndex = head;
-        wordRecord.clear();
-        wordRecordArray.splice(0, wordRecordArray.length);
       } else {
         var record = wordRecord.get(current);
-        if (record) {
-          if (record.count === expect) {
-            var i = 0;
-            for (var r of wordRecordArray) {
-              if (r === record) {
-                break;
-              }
 
-              if (r.count === 1) {
-                wordRecord.delete(r.word);
-              } else {
-                r.count--;
-              }
-
-              i++;
-            }
-
-            i++;
-            head += wordLength * i;
-            if (head + groupLength > stringLength) {
+        if (record.count === expect) {
+          var removeCount = 1;
+          for (var r of wordRecordArray) {
+            if (r === record) {
               break;
             }
 
-            g = g - i + 1;
-            gIndex += wordLength;
-            wordRecordArray.splice(0, i);
-            wordRecordArray.push(record);
-            continue;
+            r.count--;
+            removeCount++;
           }
-        } else {
-          record = { count: 0, word: current };
-          wordRecord.set(current, record);
+
+          head += wordLength * removeCount;
+          if (head + groupLength > stringLength) {
+            clearWordRecordArray();
+            break;
+          }
+
+          g = g - removeCount + 1;
+          gIndex += wordLength;
+          wordRecordArray.splice(0, removeCount);
+          wordRecordArray.push(record);
+          continue;
         }
 
         g++;
@@ -88,6 +85,7 @@ var findSubstring = function(s, words) {
           result.push(head);
           head += wordLength;
           if (head + groupLength > stringLength) {
+            clearWordRecordArray();
             break;
           }
 
@@ -98,11 +96,7 @@ var findSubstring = function(s, words) {
           wordRecordArray.push(record);
 
           const first = wordRecordArray.shift();
-          if (first.count === 1) {
-            wordRecord.delete(first.word);
-          } else {
-            first.count--;
-          }
+          first.count--;
         } else {
           gIndex += wordLength;
 
