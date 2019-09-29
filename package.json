@@ -14,5 +14,9 @@
   "bugs": {
     "url": "https://github.com/Iplaylf2/LeetCodePlay/issues"
   },
-  "homepage": "https://github.com/Iplaylf2/LeetCodePlay#readme"
+  "homepage": "https://github.com/Iplaylf2/LeetCodePlay#readme",
+  "dependencies": {},
+  "devDependencies": {
+    "eslint": "^6.5.0"
+  }
 }
