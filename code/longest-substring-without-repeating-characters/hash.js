@@ -8,7 +8,7 @@ var lengthOfLongestSubstring = function(s) {
   var max = 0;
 
   var i = 0;
-  for (var c of s) {
+  for (const c of s) {
     const lastC = map.get(c);
     if (lastC !== undefined) {
       max = Math.max(i - left, max);

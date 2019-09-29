@@ -29,8 +29,8 @@ const press = function(digits, combine, i) {
 
   const append = table[digits[i]];
   const newCombine = [];
-  for (var pre of combine) {
-    for (var c of append) {
+  for (const pre of combine) {
+    for (const c of append) {
       newCombine.push(pre + c);
     }
   }

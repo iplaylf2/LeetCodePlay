@@ -24,7 +24,7 @@ var fourSum = function(nums, target) {
   const recoredSet = new Set();
 
   const resultMap = new Map();
-  for (var [part, coupleGroup] of coupleMap) {
+  for (const [part, coupleGroup] of coupleMap) {
     const rest = target - part;
     const restGroup = coupleMap.get(rest);
     if (restGroup) {

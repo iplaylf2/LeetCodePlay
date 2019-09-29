@@ -46,7 +46,7 @@ const main = async function() {
 |:---------:|:-----:|:----:|
 `;
 
-    var body = rowArray.join("\n");
+    const body = rowArray.join("\n");
     return head + body;
   })();
 

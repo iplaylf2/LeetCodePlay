@@ -12,7 +12,8 @@
  */
 var removeNthFromEnd = function(head, n) {
   const start = { next: head };
-  var a = (b = start);
+  var a = start,
+    b = start;
   for (var i = 0; i !== n + 1; i++) {
     a = a.next;
   }

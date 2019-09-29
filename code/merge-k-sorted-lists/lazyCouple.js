@@ -41,7 +41,8 @@ class CoupleList {
 }
 
 const mergeAll = function(lists) {
-  var a = (b = null);
+  var a = null,
+    b = null;
 
   if (lists.length > 2) {
     const right = lists.splice(lists.length >> 1),

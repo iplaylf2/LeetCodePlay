@@ -11,7 +11,7 @@
  */
 var mergeKLists = function(lists) {
   const sortedLists = [];
-  for (var list of lists) {
+  for (const list of lists) {
     if (list) {
       sortedLists.push(list);
     }
@@ -23,7 +23,7 @@ var mergeKLists = function(lists) {
     return null;
   }
 
-  var start = sortedLists[0];
+  const start = sortedLists[0];
   var lastSorted = start;
   while (length > 1) {
     sortedLists[0] = sortedLists[0].next;
@@ -31,9 +31,10 @@ var mergeKLists = function(lists) {
     if (sortedLists[0]) {
       //let sortedLists[0] to smallest
 
-      var insertNode = sortedLists[0],
-        insertVal = insertNode.val,
-        i = 1;
+      const insertNode = sortedLists[0],
+        insertVal = insertNode.val;
+
+      var i = 1;
       for (; i !== length && insertVal >= sortedLists[i].val; i++) {
         sortedLists[i - 1] = sortedLists[i];
       }

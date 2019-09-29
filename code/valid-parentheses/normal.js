@@ -5,7 +5,7 @@
 var isValid = function(s) {
   const leftStack = [];
 
-  for (var c of s) {
+  for (const c of s) {
     switch (c) {
       case "(":
       case "{":

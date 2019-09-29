@@ -9,7 +9,7 @@ var findSubstring = function(s, words) {
   }
 
   const wordMap = new Map();
-  for (var word of words) {
+  for (const word of words) {
     wordMap.set(word, (wordMap.get(word) || 0) + 1);
   }
   const wordRecord = new Map(
@@ -22,7 +22,7 @@ var findSubstring = function(s, words) {
     groupLength = wordCount * wordLength,
     wordRecordArray = [],
     clearWordRecordArray = function() {
-      for (var record of wordRecordArray) {
+      for (const record of wordRecordArray) {
         record.count = 0;
       }
       wordRecordArray.splice(0, wordRecordArray.length);
@@ -54,11 +54,11 @@ var findSubstring = function(s, words) {
         g = 0;
         gIndex = head;
       } else {
-        var record = wordRecord.get(current);
+        const record = wordRecord.get(current);
 
         if (record.count === expect) {
           var removeCount = 1;
-          for (var r of wordRecordArray) {
+          for (const r of wordRecordArray) {
             if (r === record) {
               break;
             }

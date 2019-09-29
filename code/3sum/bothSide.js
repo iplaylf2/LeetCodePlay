@@ -10,7 +10,7 @@ var threeSum = function(nums) {
 
   var zeroCount = 0;
   var last = -Infinity;
-  for (var num of nums) {
+  for (const num of nums) {
     if (num === last) {
       if (num === 0) {
         zeroCount++;
