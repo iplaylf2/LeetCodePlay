@@ -1,6 +1,6 @@
 
 按顺序做题，力求当前语言下的最优解。  
-目前进度为30条。  
+目前进度为31条。  
 
 |leetcode-cn|my code|remark|
 |:---------:|:-----:|:----:|
@@ -20,6 +20,7 @@
 |[median of two sorted arrays](https://leetcode-cn.com/problems/median-of-two-sorted-arrays/)|[code](https://github.com/Iplaylf2/LeetCodePlay/tree/master/code/median-of-two-sorted-arrays)||
 |[merge k sorted lists](https://leetcode-cn.com/problems/merge-k-sorted-lists/)|[code](https://github.com/Iplaylf2/LeetCodePlay/tree/master/code/merge-k-sorted-lists)||
 |[merge two sorted lists](https://leetcode-cn.com/problems/merge-two-sorted-lists/)|[code](https://github.com/Iplaylf2/LeetCodePlay/tree/master/code/merge-two-sorted-lists)||
+|[next permutation](https://leetcode-cn.com/problems/next-permutation/)|[code](https://github.com/Iplaylf2/LeetCodePlay/tree/master/code/next-permutation)||
 |[palindrome number](https://leetcode-cn.com/problems/palindrome-number/)|[code](https://github.com/Iplaylf2/LeetCodePlay/tree/master/code/palindrome-number)||
 |[regular expression matching](https://leetcode-cn.com/problems/regular-expression-matching/)|[code](https://github.com/Iplaylf2/LeetCodePlay/tree/master/code/regular-expression-matching)|应使用其他语言。|
 |[remove duplicates from sorted array](https://leetcode-cn.com/problems/remove-duplicates-from-sorted-array/)|[code](https://github.com/Iplaylf2/LeetCodePlay/tree/master/code/remove-duplicates-from-sorted-array)||
