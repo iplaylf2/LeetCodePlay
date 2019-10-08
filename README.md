@@ -1,6 +1,6 @@
 
 按顺序做题，力求当前语言下的最优解。  
-目前进度为31条。  
+目前进度为32条。  
 
 |leetcode-cn|my code|remark|
 |:---------:|:-----:|:----:|
@@ -17,6 +17,7 @@
 |[longest common prefix](https://leetcode-cn.com/problems/longest-common-prefix/)|[code](https://github.com/Iplaylf2/LeetCodePlay/tree/master/code/longest-common-prefix)||
 |[longest palindromic substring](https://leetcode-cn.com/problems/longest-palindromic-substring/)|[code](https://github.com/Iplaylf2/LeetCodePlay/tree/master/code/longest-palindromic-substring)||
 |[longest substring without repeating characters](https://leetcode-cn.com/problems/longest-substring-without-repeating-characters/)|[code](https://github.com/Iplaylf2/LeetCodePlay/tree/master/code/longest-substring-without-repeating-characters)||
+|[longest valid parentheses](https://leetcode-cn.com/problems/longest-valid-parentheses/)|[code](https://github.com/Iplaylf2/LeetCodePlay/tree/master/code/longest-valid-parentheses)||
 |[median of two sorted arrays](https://leetcode-cn.com/problems/median-of-two-sorted-arrays/)|[code](https://github.com/Iplaylf2/LeetCodePlay/tree/master/code/median-of-two-sorted-arrays)||
 |[merge k sorted lists](https://leetcode-cn.com/problems/merge-k-sorted-lists/)|[code](https://github.com/Iplaylf2/LeetCodePlay/tree/master/code/merge-k-sorted-lists)||
 |[merge two sorted lists](https://leetcode-cn.com/problems/merge-two-sorted-lists/)|[code](https://github.com/Iplaylf2/LeetCodePlay/tree/master/code/merge-two-sorted-lists)||
