@@ -1,6 +1,6 @@
 
 按顺序做题，力求当前语言下的最优解。  
-目前进度为33条。  
+目前进度为34条。  
 
 |leetcode-cn|my code|remark|
 |:---------:|:-----:|:----:|
@@ -10,6 +10,7 @@
 |[add two numbers](https://leetcode-cn.com/problems/add-two-numbers/)|[code](https://github.com/Iplaylf2/LeetCodePlay/tree/master/code/add-two-numbers)||
 |[container with most water](https://leetcode-cn.com/problems/container-with-most-water/)|[code](https://github.com/Iplaylf2/LeetCodePlay/tree/master/code/container-with-most-water)||
 |[divide two integers](https://leetcode-cn.com/problems/divide-two-integers/)|[code](https://github.com/Iplaylf2/LeetCodePlay/tree/master/code/divide-two-integers)||
+|[find first and last position of element in sorted array](https://leetcode-cn.com/problems/find-first-and-last-position-of-element-in-sorted-array/)|[code](https://github.com/Iplaylf2/LeetCodePlay/tree/master/code/find-first-and-last-position-of-element-in-sorted-array)||
 |[generate parentheses](https://leetcode-cn.com/problems/generate-parentheses/)|[code](https://github.com/Iplaylf2/LeetCodePlay/tree/master/code/generate-parentheses)||
 |[implement strstr](https://leetcode-cn.com/problems/implement-strstr/)|[code](https://github.com/Iplaylf2/LeetCodePlay/tree/master/code/implement-strstr)|应使用其他语言。|
 |[integer to roman](https://leetcode-cn.com/problems/integer-to-roman/)|[code](https://github.com/Iplaylf2/LeetCodePlay/tree/master/code/integer-to-roman)||
