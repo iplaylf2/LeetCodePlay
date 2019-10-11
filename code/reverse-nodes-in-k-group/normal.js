@@ -17,7 +17,7 @@ var reverseKGroup = function(head, k) {
   while (head) {
     const current = head;
 
-    const part = Array(k);
+    const part = new Array(k);
     for (var i = 0; i !== k; i++) {
       if (head === null) {
         lastPart.next = current;

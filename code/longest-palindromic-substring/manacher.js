@@ -14,7 +14,7 @@ var longestPalindrome = function(s) {
   var checkedAxis = 0,
     checkedLeft = 0,
     checkRight = 0;
-  const recordArray = Array(s.length * 2 - 1).fill(0),
+  const recordArray = new Array(s.length * 2 - 1).fill(0),
     down = 0,
     up = recordArray.length - 1;
 

@@ -1,7 +1,7 @@
 //good suffix shift table
 const getGsst = function(patten) {
   //common substring length table
-  const cslt = Array(patten.length);
+  const cslt = new Array(patten.length);
   const tail = patten.length - 1;
   cslt[tail] = patten.length;
 
@@ -27,7 +27,7 @@ const getGsst = function(patten) {
   }
 
   //good suffix shift table
-  const gsst = Array(patten.length);
+  const gsst = new Array(patten.length);
   gsst[0] = patten.length;
 
   //prefix and suffix

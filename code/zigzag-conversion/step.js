@@ -19,7 +19,7 @@ var convert = function(s, numRows) {
     result += s.charAt(i);
   }
 
-  // const middleRows = Array(numRows - 2);
+  // const middleRows = new Array(numRows - 2);
   const support = length + numRows;
   for (var i = 1; i !== numRows - 1; i++) {
     // var row = "";
