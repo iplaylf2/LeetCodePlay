@@ -1,6 +1,6 @@
 
 按顺序做题，力求当前语言下的最优解。  
-目前进度为35条。  
+目前进度为36条。  
 
 |leetcode-cn|my code|remark|
 |:---------:|:-----:|:----:|
@@ -38,4 +38,5 @@
 |[swap nodes in pairs](https://leetcode-cn.com/problems/swap-nodes-in-pairs/)|[code](https://github.com/Iplaylf2/LeetCodePlay/tree/master/code/swap-nodes-in-pairs)||
 |[two sum](https://leetcode-cn.com/problems/two-sum/)|[code](https://github.com/Iplaylf2/LeetCodePlay/tree/master/code/two-sum)||
 |[valid parentheses](https://leetcode-cn.com/problems/valid-parentheses/)|[code](https://github.com/Iplaylf2/LeetCodePlay/tree/master/code/valid-parentheses)||
+|[valid sudoku](https://leetcode-cn.com/problems/valid-sudoku/)|[code](https://github.com/Iplaylf2/LeetCodePlay/tree/master/code/valid-sudoku)||
 |[zigzag conversion](https://leetcode-cn.com/problems/zigzag-conversion/)|[code](https://github.com/Iplaylf2/LeetCodePlay/tree/master/code/zigzag-conversion)||
