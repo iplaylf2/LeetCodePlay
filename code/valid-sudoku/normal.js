@@ -33,8 +33,9 @@ var isValidSudoku = function(board) {
   return true;
 };
 
-const nineNull = new Array(9).fill(null);
 const nineZero = new Array(9).fill(0);
-const indexMap = nineNull.map((_, y) =>
-  nineZero.concat().map((_, x) => Math.floor(y / 3) * 3 + Math.floor(x / 3))
-);
+const indexMap = new Array(9)
+  .fill(null)
+  .map((_, y) =>
+    nineZero.concat().map((_, x) => Math.floor(y / 3) * 3 + Math.floor(x / 3))
+  );
