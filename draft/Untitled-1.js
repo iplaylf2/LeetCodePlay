@@ -5,10 +5,9 @@
 var solveSudoku = function(board) {
   const rowArray = nineNull.concat(0).map(() => new Bar()),
     columnArray = nineNull.concat().map(() => new Bar()),
-    boxArray = nineNull.concat().map(() => new Box()),
-    whiteArray = [];
+    boxArray = nineNull.concat().map(() => new Box());
 
-  recordExisting(board, rowArray, columnArray, boxArray, whiteArray);
+  var whiteArray = recordExisting(board, rowArray, columnArray, boxArray);
 };
 
 /**
@@ -18,13 +17,12 @@ var solveSudoku = function(board) {
  * @param {Box[]} boxArray
  * @param {White[]} whiteArray
  */
-const recordExisting = function(
-  board,
-  rowArray,
-  columnArray,
-  boxArray,
-  whiteArray
-) {
+const recordExisting = function(board, rowArray, columnArray, boxArray) {
+  /**
+   * @type {White[]}
+   */
+  const whiteArray = [];
+
   for (var y = 0; y !== 9; y++) {
     for (var x = 0; x !== 9; x++) {
       const digit = board[y][x],
@@ -41,6 +39,8 @@ const recordExisting = function(
       }
     }
   }
+
+  return whiteArray;
 };
 
 class Waiting {
