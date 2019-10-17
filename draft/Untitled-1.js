@@ -6,27 +6,44 @@ var solveSudoku = function(board) {
   const rowArray = nineNull.concat(0).map(() => new Bar()),
     columnArray = nineNull.concat().map(() => new Bar()),
     boxArray = nineNull.concat().map(() => new Box()),
-    /**
-     * @type {White[]}
-     */
     whiteArray = [];
+
+  recordExisting(board, rowArray, columnArray, boxArray, whiteArray);
 };
 
 /**
  * @param {character[][]} board
+ * @param {Bar[]} rowArray
+ * @param {Bar[]} columnArray
+ * @param {Box[]} boxArray
+ * @param {White[]} whiteArray
  */
-const firstScan = function(board) {
+const recordExisting = function(
+  board,
+  rowArray,
+  columnArray,
+  boxArray,
+  whiteArray
+) {
   for (var y = 0; y !== 9; y++) {
     for (var x = 0; x !== 9; x++) {
-      const value = board[y][x];
-      if (value === ".") {
+      const digit = board[y][x],
+        row = rowArray[y],
+        column = columnArray[x],
+        box = boxArray[boxMap[y][x]];
+      if (digit === ".") {
+        const white = new White(x, y, column, row, box);
+        whiteArray.push(white);
       } else {
+        row.existing.record(digit);
+        column.existing.record(digit);
+        box.existing.record(digit);
       }
     }
   }
 };
 
-class Option {
+class Waiting {
   constructor() {
     this.bit = 1;
     this.length = 9;
@@ -38,6 +55,17 @@ class Option {
   reduce(digit) {
     this.bit |= 1 << digit;
     this.length--;
+  }
+
+  /**
+   * @param {number} digit
+   */
+  reduceWithCheck(digit) {
+    const digitBit = 1 << digit;
+    if (this.bit & digitBit) {
+      this.bit |= digitBit;
+      this.length--;
+    }
   }
 
   hasUniqueIndex() {
@@ -131,6 +159,25 @@ class Exclusion {
   }
 }
 
+class White {
+  /**
+   * @param {numnber} x
+   * @param {number} y
+   * @param {Bar} column
+   * @param {Bar} row
+   * @param {Box} box
+   */
+  constructor(x, y, column, row, box) {
+    this.x = x;
+    this.y = y;
+    this.column = column;
+    this.row = row;
+    this.box = box;
+    this.wating = new Waiting();
+    this.fixed = false;
+  }
+}
+
 class Bar {
   constructor() {
     this.existing = new Existing();
@@ -148,18 +195,6 @@ class Box {
      * @type {Map<number,Exclusion>}
      */
     this.exclusionMap = new Map();
-  }
-}
-
-class White {
-  /**
-   *
-   * @param {number} x
-   * @param {number} y
-   */
-  constructor(x, y) {
-    this.x = x;
-    this.y = y;
   }
 }
 
