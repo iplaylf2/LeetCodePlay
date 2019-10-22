@@ -1,6 +1,6 @@
 
 按顺序做题，力求当前语言下的最优解。  
-目前进度为37条。  
+目前进度为38条。  
 
 |leetcode-cn|my code|remark|
 |:---------:|:-----:|:----:|
@@ -9,6 +9,7 @@
 |[4sum](https://leetcode-cn.com/problems/4sum/)|[code](https://github.com/Iplaylf2/LeetCodePlay/tree/master/code/4sum)||
 |[add two numbers](https://leetcode-cn.com/problems/add-two-numbers/)|[code](https://github.com/Iplaylf2/LeetCodePlay/tree/master/code/add-two-numbers)||
 |[container with most water](https://leetcode-cn.com/problems/container-with-most-water/)|[code](https://github.com/Iplaylf2/LeetCodePlay/tree/master/code/container-with-most-water)||
+|[count and say](https://leetcode-cn.com/problems/count-and-say/)|[code](https://github.com/Iplaylf2/LeetCodePlay/tree/master/code/count-and-say)||
 |[divide two integers](https://leetcode-cn.com/problems/divide-two-integers/)|[code](https://github.com/Iplaylf2/LeetCodePlay/tree/master/code/divide-two-integers)||
 |[find first and last position of element in sorted array](https://leetcode-cn.com/problems/find-first-and-last-position-of-element-in-sorted-array/)|[code](https://github.com/Iplaylf2/LeetCodePlay/tree/master/code/find-first-and-last-position-of-element-in-sorted-array)||
 |[generate parentheses](https://leetcode-cn.com/problems/generate-parentheses/)|[code](https://github.com/Iplaylf2/LeetCodePlay/tree/master/code/generate-parentheses)||
