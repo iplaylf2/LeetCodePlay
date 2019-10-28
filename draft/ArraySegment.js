@@ -13,13 +13,17 @@ class ArraySegment {
     }
   };
 
+  static create(segment) {
+    return new Proxy(segment, ArraySegment.proxy);
+  }
+
   constructor(arr, start, end) {
     this.source = arr;
     this.start = start;
     this.end = end;
     this.length = end - start + 1;
 
-    return new Proxy(this, ArraySegment.proxy);
+    return ArraySegment.create(this);
   }
 
   get(property) {
@@ -36,6 +40,16 @@ class ArraySegment {
     if (!Number.isNaN(index) && index < this.length) {
       this.source[index] = value;
     }
+  }
+
+  take(start, end) {
+    const segment = Object.create(ArraySegment.prototype);
+    segment.source = this.source;
+    segment.start = this.start + start;
+    segment.end = this.start + end;
+    segment.length = end - start + 1;
+
+    return ArraySegment.create(segment);
   }
 
   *[Symbol.iterator]() {
