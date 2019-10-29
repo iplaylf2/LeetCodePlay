@@ -1,6 +1,6 @@
 
 按顺序做题，力求当前语言下的最优解。  
-目前进度为40条。  
+目前进度为41条。  
 
 |leetcode-cn|my code|remark|
 |:---------:|:-----:|:----:|
@@ -14,6 +14,7 @@
 |[count and say](https://leetcode-cn.com/problems/count-and-say/)|[code](https://github.com/Iplaylf2/LeetCodePlay/tree/master/code/count-and-say)||
 |[divide two integers](https://leetcode-cn.com/problems/divide-two-integers/)|[code](https://github.com/Iplaylf2/LeetCodePlay/tree/master/code/divide-two-integers)||
 |[find first and last position of element in sorted array](https://leetcode-cn.com/problems/find-first-and-last-position-of-element-in-sorted-array/)|[code](https://github.com/Iplaylf2/LeetCodePlay/tree/master/code/find-first-and-last-position-of-element-in-sorted-array)||
+|[first missing positive](https://leetcode-cn.com/problems/first-missing-positive/)|[code](https://github.com/Iplaylf2/LeetCodePlay/tree/master/code/first-missing-positive)||
 |[generate parentheses](https://leetcode-cn.com/problems/generate-parentheses/)|[code](https://github.com/Iplaylf2/LeetCodePlay/tree/master/code/generate-parentheses)||
 |[implement strstr](https://leetcode-cn.com/problems/implement-strstr/)|[code](https://github.com/Iplaylf2/LeetCodePlay/tree/master/code/implement-strstr)|应使用其他语言。|
 |[integer to roman](https://leetcode-cn.com/problems/integer-to-roman/)|[code](https://github.com/Iplaylf2/LeetCodePlay/tree/master/code/integer-to-roman)||
