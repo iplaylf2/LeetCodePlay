@@ -3,24 +3,17 @@
  * @return {number}
  */
 var firstMissingPositive = function(nums) {
-  const max = nums.length,
-    bitmap = new Array(max + 1).fill(true);
-
-  for (const num of nums) {
-    if (num > 0) {
-      if (num <= max) {
-        bitmap[num] = false;
-      }
-    }
-  }
+  const max = nums.length + 1,
+    bitmap = new Array(max).fill(true);
 
   bitmap[0] = false;
-  var i = 0;
-  for (const white of bitmap) {
-    if (white) {
-      return i;
+
+  for (const num of nums) {
+    if (num > 0 && num < max) {
+      bitmap[num] = false;
     }
-    i++;
   }
-  return i;
+
+  const miss = bitmap.indexOf(true);
+  return miss === -1 ? max : miss;
 };
