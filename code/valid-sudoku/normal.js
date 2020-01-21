@@ -19,7 +19,7 @@ var isValidSudoku = function(board) {
         if ((ySetMap[y] & bit) !== 0) {
           return false;
         }
-        const area = indexMap[y][x];
+        const area = indexMap[y * 9 + x];
         if ((areaSetMap[area] & bit) !== 0) {
           return false;
         }
@@ -35,8 +35,8 @@ var isValidSudoku = function(board) {
 };
 
 const nineZero = new Array(9).fill(0);
-const indexMap = new Array(9)
-  .fill(null)
-  .map((_, y) =>
-    nineZero.map((_, x) => Math.floor(y / 3) * 3 + Math.floor(x / 3))
-  );
+const indexMap = new Array(81).fill(null).map((_, i) => {
+  const x = i % 9;
+  const y = (i - x) / 9;
+  return Math.floor(y / 3) * 3 + Math.floor(x / 3);
+});
