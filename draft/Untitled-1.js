@@ -3,16 +3,24 @@
  * @return {void} Do not return anything, modify board in-place instead.
  */
 var solveSudoku = function(board) {
-  var cellArray = cloneCellArray(cellArraySource);
-  var { xBlockArray, yBlockArray, areaBlockArray } = cloneBlock(blockSource);
+  const cellArray = cloneCellArray(cellArraySource);
+  const blockMap = cloneBlock(blockSource);
+  init(board, cellArray, blockMap);
+};
+
+const init = function(board, cellArray, blockMap) {
+  const { xBlockArray, yBlockArray, areaBlockArray } = blockMap;
+
+  var count = 0;
 
   for (var y = 0; y !== 9; y++) {
     for (var x = 0; x !== 9; x++) {
       const value = board[y][x];
-      xBlock = xBlockArray[x];
-      yBlock = yBlockArray[y];
+      const xBlock = xBlockArray[x];
+      const yBlock = yBlockArray[y];
       const index = y * 9 + x;
-      areaBlock = areaBlockArray[index];
+      const areaIndex = areaIndexMap(index);
+      const areaBlock = areaBlockArray[areaIndex];
 
       if (value === ".") {
         const position = { x, y };
@@ -20,6 +28,8 @@ var solveSudoku = function(board) {
         yBlock.whiteCell.push(position);
         areaBlock.whiteCell.push(position);
       } else {
+        count++;
+
         cellArray[index] = null;
         xBlock.waitingValue[value] = null;
         yBlock.waitingValue[value] = null;
@@ -34,16 +44,74 @@ var solveSudoku = function(board) {
           yBlockArray[y] = null;
         }
         if (areaBlock.waitingLength === 0) {
-          areaBlockArray[index] = null;
+          areaBlockArray[areaIndex] = null;
         }
       }
     }
   }
+
+  if (count === 81) {
+    return [count];
+  }
+
+  const confirmArray = [];
+
+  for (var y = 0; y !== 9; y++) {
+    for (var x = 0; x !== 9; x++) {
+      const value = board[y][x];
+      if (value !== ".") {
+        count += foo(
+          x,
+          y,
+          value,
+          xBlockArray,
+          yBlockArray,
+          areaBlockArray,
+          confirmArray
+        );
+      }
+    }
+  }
+
+  return [count, confirmArray];
+};
+
+const foo = function(
+  x,
+  y,
+  value,
+  cellArray,
+  xBlockArray,
+  yBlockArray,
+  areaBlockArray,
+  confirmArray
+) {
+  var count = 0;
+
+  const xBlock = xBlockArray[x];
+  if (xBlock !== null) {
+    for (const { x, y } of xBlock.whiteCell) {
+      const index = y * 9 + x;
+      board(index);
+    }
+  }
+
+  const yBlock = yBlockArray[y];
+  if (yBlock !== null) {
+  }
+
+  const index = y * 9 + x;
+  const areaIndex = areaIndexMap(index);
+  const areaBlock = areaBlockArray[areaIndex];
+  if (areaBlock !== null) {
+  }
+
+  return 0;
 };
 
 const $9item = new Array(9).fill(null);
 const $81item = new Array(81).fill(null);
-const indexMap = $81item.map((_, i) => {
+const areaIndexMap = $81item.map((_, i) => {
   const x = i % 9;
   const y = (i - x) / 9;
   return Math.floor(y / 3) * 3 + Math.floor(x / 3);
@@ -76,6 +144,12 @@ const blockSource = {
   areaBlockArray: $9item.map(createBlock)
 };
 
+const contextSource = {
+  cellArray: cellArraySource,
+  blockMap: blockSource,
+  count: 0
+};
+
 const cloneCellArray = function(cellArray) {
   return cellArray.map(item => ({ ...item }));
 };
@@ -95,20 +169,21 @@ const cloneBlock = function(block) {
   };
 };
 
-class UnitExclusive {
-  constructor() {
-    this.bitmap = 0b1111111110;
-    this.length = 9;
-  }
+const copyContext = function(context) {
+  return {
+    cellArray: cloneCellArray(context.cellArray),
+    blockMap: cloneBlock(context.blockMap),
+    count: context.count
+  };
+};
 
-  push(digit) {
-    const digitBit = 1 << digit;
-    if (this.bitmap & digitBit) {
-      this.bitmap ^= digitBit;
-      this.length--;
-      return length === 1 ? Math.log2(this.bitmap) : NaN;
-    } else {
-      return NaN;
-    }
+const exclusive = function(item, digit) {
+  const digitBit = 1 << digit;
+  if (item.bitmap & digitBit) {
+    item.bitmap ^= digitBit;
+    item.length--;
+    return item.length === 1 ? Math.log2(item.bitmap) : NaN;
+  } else {
+    return NaN;
   }
-}
+};
