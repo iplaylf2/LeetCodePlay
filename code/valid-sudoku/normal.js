@@ -3,30 +3,25 @@
  * @return {boolean}
  */
 var isValidSudoku = function(board) {
-  const xSetMap = nineZero.slice(),
-    ySetMap = nineZero.slice(),
-    areaSetMap = nineZero.slice();
+  const columnRecord = nineZero.slice(),
+    rowRecord = nineZero.slice(),
+    roomRecord = nineZero.slice();
 
   for (var y = 0; y !== 9; y++) {
     for (var x = 0; x !== 9; x++) {
       const value = board[y][x];
       if (value !== ".") {
+        const r = roomMap[y * 9 + x];
         const bit = 1 << value;
+        const bitmap = columnRecord[x] | rowRecord[y] | roomRecord[r];
 
-        if ((xSetMap[x] & bit) !== 0) {
-          return false;
-        }
-        if ((ySetMap[y] & bit) !== 0) {
-          return false;
-        }
-        const area = indexMap[y * 9 + x];
-        if ((areaSetMap[area] & bit) !== 0) {
+        if ((bitmap & bit) !== 0) {
           return false;
         }
 
-        xSetMap[x] |= bit;
-        ySetMap[y] |= bit;
-        areaSetMap[area] |= bit;
+        columnRecord[x] |= bit;
+        rowRecord[y] |= bit;
+        roomRecord[r] |= bit;
       }
     }
   }
@@ -35,7 +30,7 @@ var isValidSudoku = function(board) {
 };
 
 const nineZero = new Array(9).fill(0);
-const indexMap = new Array(9 * 9).fill().map((_, i) => {
+const roomMap = new Array(9 * 9).fill().map((_, i) => {
   const x = i % 9;
   const y = (i - x) / 9;
   return Math.floor(y / 3) * 3 + Math.floor(x / 3);
