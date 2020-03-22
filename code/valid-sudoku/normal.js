@@ -3,9 +3,9 @@
  * @return {boolean}
  */
 var isValidSudoku = function(board) {
-  const xSetMap = nineZero.slice(0),
-    ySetMap = nineZero.slice(0),
-    areaSetMap = nineZero.slice(0);
+  const xSetMap = nineZero.slice(),
+    ySetMap = nineZero.slice(),
+    areaSetMap = nineZero.slice();
 
   for (var y = 0; y !== 9; y++) {
     for (var x = 0; x !== 9; x++) {
