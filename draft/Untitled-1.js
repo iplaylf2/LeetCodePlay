@@ -12,15 +12,9 @@ var solveSudoku = function(board) {
 
   const snapshotList = [];
   var dilemma = sudokuState;
+  var [available, explore] = dilemma.guessCell();
 
   while (true) {
-    const [available, explore] = dilemma.guess();
-
-    if (!available) {
-      dilemma = snapshotList.pop();
-      continue;
-    }
-
     switch (explore.reasoning()) {
       case "complete":
         explore.fill(board);
@@ -28,17 +22,28 @@ var solveSudoku = function(board) {
       case "incomplete":
         snapshotList.push(dilemma);
         dilemma = explore;
+
+        [available, explore] = dilemma.guessCell();
+        if (available) {
+          continue;
+        }
+
         break;
       case "wrong":
         break;
     }
+
+    do {
+      dilemma = snapshotList.pop();
+      [available, explore] = dilemma.guessDigit();
+    } while (!available);
   }
 };
 
 class SudokuState {
   static create(board) {
     const flatBoard = $9X9Zero.slice();
-    const blankSet = new Set();
+    const blankList = [];
     const validator = Validator.create();
 
     for (var y = 0; y !== 9; y++) {
@@ -47,7 +52,7 @@ class SudokuState {
         const index = y * 9 + x;
 
         if (digit === ".") {
-          blankSet.add(index);
+          blankList.push(index);
           continue;
         }
 
@@ -64,14 +69,14 @@ class SudokuState {
 
     return new SudokuState(
       flatBoard,
-      blankSet,
+      blankList,
       validator,
       exclusiveDigit,
       exclusiveCell
     );
   }
 
-  constructor(board, blankSet, validator, exclusiveDigit, exclusiveCell) {
+  constructor(board, blankList, validator, exclusiveDigit, exclusiveCell) {
     /**
      * @type {number[]}
      */
@@ -79,7 +84,7 @@ class SudokuState {
     /**
      * @type {number[]}
      */
-    this.blankSet = blankSet;
+    this.blankList = blankList;
     /**
      * @type {Validator}
      */
@@ -100,7 +105,7 @@ class SudokuState {
      */
     const determineList = [];
 
-    for (const index of this.blankSet) {
+    for (const index of this.blankList) {
       const bitmap = this.validator.getBitmap(index);
       const [determine, bit] = this.exclusiveDigit.recordBlank(index, bitmap);
       if (determine) {
