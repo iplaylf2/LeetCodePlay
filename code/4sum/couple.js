@@ -21,14 +21,14 @@ var fourSum = function(nums, target) {
     }
   }
 
-  const recoredSet = new Set();
+  const recordSet = new Set();
 
   const resultMap = new Map();
   for (const [part, coupleGroup] of coupleMap) {
     const rest = target - part;
     const restGroup = coupleMap.get(rest);
     if (restGroup) {
-      if (recoredSet.has(part)) {
+      if (recordSet.has(part)) {
         continue;
       }
 
@@ -44,8 +44,8 @@ var fourSum = function(nums, target) {
         }
       }
 
-      recoredSet.add(part);
-      recoredSet.add(rest);
+      recordSet.add(part);
+      recordSet.add(rest);
     }
   }
 
