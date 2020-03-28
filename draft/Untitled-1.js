@@ -116,7 +116,9 @@ class SudokuState {
 
   reasoning() {}
 
-  guess() {}
+  guessCell() {}
+
+  guessDigit() {}
 
   fill(board) {
     for (var y = 0; y !== 9; y++) {
@@ -154,16 +156,16 @@ class Validator {
   }
 
   getBitmap(index) {
-    const x = columnMap[index];
-    const y = rowMap[index];
-    const r = roomMap[index];
+    const x = columnMap[index],
+      y = rowMap[index],
+      r = roomMap[index];
     return this.rowRecord[y] | this.columnRecord[x] | this.roomRecord[r];
   }
 
   validate(index, bit) {
-    const x = columnMap[index];
-    const y = rowMap[index];
-    const r = roomMap[index];
+    const x = columnMap[index],
+      y = rowMap[index],
+      r = roomMap[index];
     const bitmap =
       this.rowRecord[y] | this.columnRecord[x] | this.roomRecord[r];
     if (bitmap & bit) {
@@ -189,7 +191,7 @@ class ExclusiveDigit {
     return new ExclusiveDigit(board);
   }
 
-  constructor(board) {
+  constructor(board, minIndex) {
     /**
      * @type {{bitmap:number,count:number}[]}
      */
@@ -247,7 +249,17 @@ class ExclusiveCell {
     return new ExclusiveCell();
   }
 
-  constructor() {}
+  constructor(rowRecord, columnRecord, roomRecord) {
+    this.rowRecord = rowRecord;
+    this.columnRecord = columnRecord;
+    this.roomRecord = roomRecord;
+  }
+
+  exclusive(index, digit) {
+    const x = columnMap[index],
+      y = rowMap[index],
+      r = roomMap[index];
+  }
 
   clone() {}
 }
@@ -270,11 +282,10 @@ const exclusive = function(item, digit) {
 
 const $9Zero = new Array(9).fill(0);
 const $9X9Zero = new Array(9 * 9).fill(0);
+const $9Item = new Array(9).fill();
 const $9X9Item = new Array(9 * 9).fill();
 
-const bitmap = new Array(9).fill(0b111_111_111_0);
-
-var rowMap = $9X9Zero.slice(),
+const rowMap = $9X9Zero.slice(),
   columnMap = $9X9Zero.slice(),
   roomMap = $9X9Zero.slice();
 
@@ -284,5 +295,44 @@ for (var y = 0; y !== 9; y++) {
     rowMap[index] = y;
     columnMap[index] = x;
     roomMap[index] = Math.floor(y / 3) * 3 + Math.floor(x / 3);
+  }
+}
+
+const rowIncMap = $9Item.map(() => []),
+  columnIncMap = $9Item.map(() => []),
+  roomIncMap = $9Item.map(() => []);
+
+for (var r = 0; r !== 9; r++) {
+  const rowInc = rowIncMap[r],
+    columnInc = columnIncMap[r],
+    roomInc = roomIncMap[r];
+
+  const _x = r % 3,
+    _y = (r - _x) / 3;
+
+  const rowMask = 0b111 << (_y * 3),
+    columnMask = 0b111 << (_x * 3);
+
+  for (var i = 0; i !== 9; i++) {
+    const bit = 1 << i;
+    if ((rowMask & bit) === 0) {
+      rowInc.push[i];
+    }
+    if ((columnMask & bit) === 0) {
+      columnInc.push[i];
+    }
+  }
+
+  const __x = _x,
+    __y = _y * 3;
+  for (var i = 0; i !== 3; i++) {
+    const onY = i * 3 + __x;
+    if (r !== onY) {
+      roomInc.push[onY];
+    }
+    const onX = i + __y;
+    if (r !== onX) {
+      roomInc.push[onX];
+    }
   }
 }
