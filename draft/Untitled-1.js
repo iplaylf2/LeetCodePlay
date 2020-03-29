@@ -57,7 +57,7 @@ class SudokuState {
         }
 
         grid[index] = digit;
-        const b = blockMap[index];
+        const b = index$block[index];
         const bit = 1 << digit;
 
         validator.record(r, c, b, bit);
@@ -165,17 +165,17 @@ class Validator {
   }
 
   getBitmap(index) {
-    const r = rowMap[index],
-      c = columnMap[index],
-      b = blockMap[index];
+    const r = index$row[index],
+      c = index$column[index],
+      b = index$block[index];
 
     return this.rowRecord[r] | this.columnRecord[c] | this.blockRecord[b];
   }
 
   validate(index, bit) {
-    const r = rowMap[index],
-      c = columnMap[index],
-      b = blockMap[index];
+    const r = index$row[index],
+      c = index$column[index],
+      b = index$block[index];
 
     const bitmap =
       this.rowRecord[r] | this.columnRecord[c] | this.blockRecord[b];
@@ -268,9 +268,9 @@ class LockedCandidateStrategy {
   }
 
   lock(index, digit) {
-    const r = rowMap[index],
-      c = columnMap[index],
-      b = blockMap[index];
+    const r = index$row[index],
+      c = index$column[index],
+      b = index$block[index];
   }
 
   clone() {}
@@ -281,16 +281,21 @@ const $9X9Zero = new Array(9 * 9).fill(0);
 const $9Item = new Array(9).fill();
 const $9X9Item = new Array(9 * 9).fill();
 
-const rowMap = $9X9Zero.slice(),
-  columnMap = $9X9Zero.slice(),
-  blockMap = $9X9Zero.slice();
+const index$row = $9X9Zero.slice(),
+  index$column = $9X9Zero.slice(),
+  index$block = $9X9Zero.slice();
+
+const block$indexList = $9Item.map(() => []);
 
 for (var r = 0; r !== 9; r++) {
   for (var c = 0; c !== 9; c++) {
+    const b = Math.floor(r / 3) * 3 + Math.floor(c / 3);
     const index = r * 9 + c;
-    rowMap[index] = r;
-    columnMap[index] = c;
-    blockMap[index] = Math.floor(r / 3) * 3 + Math.floor(c / 3);
+    index$row[index] = r;
+    index$column[index] = c;
+    index$block[index] = b;
+
+    block$indexList[b].push(index);
   }
 }
 
@@ -319,16 +324,16 @@ for (var b = 0; b !== 9; b++) {
     }
   }
 
-  const towerAdd = t,
-    floorAdd = f * 3;
+  const floorAdd = f * 3,
+    towerAdd = t;
   for (var i = 0; i !== 3; i++) {
-    const onTower = i + floorAdd;
-    if (b !== onTower) {
-      blockAdd.push[onTower];
-    }
-    const onFloor = i * 3 + towerAdd;
+    const onFloor = i + floorAdd;
     if (b !== onFloor) {
       blockAdd.push[onFloor];
+    }
+    const onTower = i * 3 + towerAdd;
+    if (b !== onTower) {
+      blockAdd.push[onTower];
     }
   }
 }
