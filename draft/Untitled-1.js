@@ -4,7 +4,7 @@
  */
 var solveSudoku = function(board) {
   const sudokuState = SudokuState.create(board);
-  const complete = sudokuState.reasoningReliably();
+  const complete = sudokuState.inferenceReliably();
   if (complete) {
     sudokuState.fill(board);
     return;
@@ -12,18 +12,18 @@ var solveSudoku = function(board) {
 
   const snapshotList = [];
   var dilemma = sudokuState;
-  var [available, explore] = dilemma.guessCell();
+  var [available, branch] = dilemma.tryCell();
 
   while (true) {
-    switch (explore.reasoning()) {
+    switch (branch.inference()) {
       case "complete":
-        explore.fill(board);
+        branch.fill(board);
         return;
       case "incomplete":
         snapshotList.push(dilemma);
-        dilemma = explore;
+        dilemma = branch;
 
-        [available, explore] = dilemma.guessCell();
+        [available, branch] = dilemma.tryCell();
         if (available) {
           continue;
         }
@@ -35,52 +35,58 @@ var solveSudoku = function(board) {
 
     do {
       dilemma = snapshotList.pop();
-      [available, explore] = dilemma.guessDigit();
+      [available, branch] = dilemma.tryDigit();
     } while (!available);
   }
 };
 
 class SudokuState {
   static create(board) {
-    const flatBoard = $9X9Zero.slice();
+    const grid = $9X9Zero.slice();
     const blankList = [];
     const validator = Validator.create();
 
-    for (var y = 0; y !== 9; y++) {
-      for (var x = 0; x !== 9; x++) {
-        const digit = board[y][x];
-        const index = y * 9 + x;
+    for (var r = 0; r !== 9; r++) {
+      for (var c = 0; c !== 9; c++) {
+        const digit = board[r][c];
+        const index = r * 9 + c;
 
         if (digit === ".") {
           blankList.push(index);
           continue;
         }
 
-        flatBoard[index] = digit;
-        const r = roomMap[index];
+        grid[index] = digit;
+        const b = blockMap[index];
         const bit = 1 << digit;
 
-        validator.record(x, y, r, bit);
+        validator.record(r, c, b, bit);
       }
     }
 
-    const exclusiveDigit = ExclusiveDigit.create();
-    const exclusiveCell = ExclusiveCell.create();
+    const hiddenStrategy = HiddenStrategy.create();
+    const lockedCandidateStrategy = LockedCandidateStrategy.create();
 
     return new SudokuState(
-      flatBoard,
+      grid,
       blankList,
       validator,
-      exclusiveDigit,
-      exclusiveCell
+      hiddenStrategy,
+      lockedCandidateStrategy
     );
   }
 
-  constructor(board, blankList, validator, exclusiveDigit, exclusiveCell) {
+  constructor(
+    grid,
+    blankList,
+    validator,
+    hiddenStrategy,
+    lockedCandidateStrategy
+  ) {
     /**
      * @type {number[]}
      */
-    this.board = board;
+    this.grid = grid;
     /**
      * @type {number[]}
      */
@@ -90,16 +96,16 @@ class SudokuState {
      */
     this.validator = validator;
     /**
-     * @type {ExclusiveDigit}
+     * @type {HiddenStrategy}
      */
-    this.exclusiveDigit = exclusiveDigit;
+    this.hiddenStrategy = hiddenStrategy;
     /**
-     * @type {ExclusiveCell}
+     * @type {LockedCandidateStrategy}
      */
-    this.exclusiveCell = exclusiveCell;
+    this.lockedCandidateStrategy = lockedCandidateStrategy;
   }
 
-  reasoningReliably() {
+  inferenceReliably() {
     /**
      * @type {[number,number][]}
      */
@@ -107,23 +113,26 @@ class SudokuState {
 
     for (const index of this.blankList) {
       const bitmap = this.validator.getBitmap(index);
-      const [determine, bit] = this.exclusiveDigit.recordBlank(index, bitmap);
+      const [determine, bit] = this.hiddenStrategy.recordCandidate(
+        index,
+        bitmap
+      );
       if (determine) {
         determineList.push([index, bit]);
       }
     }
   }
 
-  reasoning() {}
+  inference() {}
 
-  guessCell() {}
+  tryCell() {}
 
-  guessDigit() {}
+  tryDigit() {}
 
   fill(board) {
-    for (var y = 0; y !== 9; y++) {
-      for (var x = 0; x !== 9; x++) {
-        board[y][x] = this.board[y * 9 + x];
+    for (var r = 0; r !== 9; r++) {
+      for (var c = 0; c !== 9; c++) {
+        board[r][c] = this.grid[r * 9 + c];
       }
     }
   }
@@ -134,7 +143,7 @@ class Validator {
     return new Validator($9Zero.slice(), $9Zero.slice(), $9Zero.slice());
   }
 
-  constructor(rowRecord, columnRecord, roomRecord) {
+  constructor(rowRecord, columnRecord, blockRecord) {
     /**
      * @type {number[]}
      */
@@ -146,32 +155,35 @@ class Validator {
     /**
      * @type {number[]}
      */
-    this.roomRecord = roomRecord;
+    this.blockRecord = blockRecord;
   }
 
-  record(x, y, r, bit) {
-    this.columnRecord[x] |= bit;
-    this.rowRecord[y] |= bit;
-    this.roomRecord[r] |= bit;
+  record(r, c, b, bit) {
+    this.rowRecord[r] |= bit;
+    this.columnRecord[c] |= bit;
+    this.blockRecord[b] |= bit;
   }
 
   getBitmap(index) {
-    const x = columnMap[index],
-      y = rowMap[index],
-      r = roomMap[index];
-    return this.rowRecord[y] | this.columnRecord[x] | this.roomRecord[r];
+    const r = rowMap[index],
+      c = columnMap[index],
+      b = blockMap[index];
+
+    return this.rowRecord[r] | this.columnRecord[c] | this.blockRecord[b];
   }
 
   validate(index, bit) {
-    const x = columnMap[index],
-      y = rowMap[index],
-      r = roomMap[index];
+    const r = rowMap[index],
+      c = columnMap[index],
+      b = blockMap[index];
+
     const bitmap =
-      this.rowRecord[y] | this.columnRecord[x] | this.roomRecord[r];
+      this.rowRecord[r] | this.columnRecord[c] | this.blockRecord[b];
+
     if (bitmap & bit) {
       return false;
     } else {
-      this, this.record(x, y, r, bit);
+      this.record(r, c, b, bit);
       return true;
     }
   }
@@ -180,25 +192,25 @@ class Validator {
     return new Validator(
       this.rowRecord.slice(),
       this.columnRecord.slice(),
-      this.roomRecord.slice()
+      this.blockRecord.slice()
     );
   }
 }
 
-class ExclusiveDigit {
+class HiddenStrategy {
   static create() {
-    const board = $9X9Item.slice().fill(null);
-    return new ExclusiveDigit(board);
+    const PMGrid = $9X9Item.slice().fill(null);
+    return new HiddenStrategy(PMGrid);
   }
 
-  constructor(board, minIndex) {
+  constructor(PMGrid, minIndex) {
     /**
      * @type {{bitmap:number,count:number}[]}
      */
-    this.board = board;
+    this.PMGrid = PMGrid;
   }
 
-  recordBlank(index, bitmap) {
+  recordCandidate(index, bitmap) {
     bitmap ^= 0b111_111_111_0;
 
     var count = 0;
@@ -212,7 +224,7 @@ class ExclusiveDigit {
       return [true, bitmap];
     }
 
-    this.board[index] = {
+    this.PMGrid[index] = {
       bitmap,
       count
     };
@@ -220,15 +232,15 @@ class ExclusiveDigit {
     return [false, 0];
   }
 
-  exclusive(index, bit) {
-    const cell = this.board[index];
+  hidden(index, bit) {
+    const cell = this.PMGrid[index];
 
     if (cell && cell.bitmap & bit) {
       const bitmap = cell.bitmap ^ bit;
       const count = cell.count - 1;
 
       if (count === 1) {
-        this.board[index] = null;
+        this.PMGrid[index] = null;
         return Math.log2(bitmap);
       }
 
@@ -240,45 +252,29 @@ class ExclusiveDigit {
   }
 
   clone() {
-    return new ExclusiveDigit(this.board.map(cell => cell && { ...cell }));
+    return new HiddenStrategy(this.PMGrid.map(cell => cell && { ...cell }));
   }
 }
 
-class ExclusiveCell {
+class LockedCandidateStrategy {
   static create() {
-    return new ExclusiveCell();
+    return new LockedCandidateStrategy();
   }
 
-  constructor(rowRecord, columnRecord, roomRecord) {
-    this.rowRecord = rowRecord;
-    this.columnRecord = columnRecord;
-    this.roomRecord = roomRecord;
+  constructor(rowLockedMap, columnLockedMap, blockLockedMap) {
+    this.rowLockedMap = rowLockedMap;
+    this.columnLockedMap = columnLockedMap;
+    this.blockLockedMap = blockLockedMap;
   }
 
-  exclusive(index, digit) {
-    const x = columnMap[index],
-      y = rowMap[index],
-      r = roomMap[index];
+  lock(index, digit) {
+    const r = rowMap[index],
+      c = columnMap[index],
+      b = blockMap[index];
   }
 
   clone() {}
 }
-
-// {
-//   bitmap: 0b111_111_111_0,
-//   length: 9
-// }
-
-const exclusive = function(item, digit) {
-  const digitBit = 1 << digit;
-  if (item.bitmap & digitBit) {
-    item.bitmap ^= digitBit;
-    item.length--;
-    return item.length === 1 ? Math.log2(item.bitmap) : NaN;
-  } else {
-    return NaN;
-  }
-};
 
 const $9Zero = new Array(9).fill(0);
 const $9X9Zero = new Array(9 * 9).fill(0);
@@ -287,52 +283,55 @@ const $9X9Item = new Array(9 * 9).fill();
 
 const rowMap = $9X9Zero.slice(),
   columnMap = $9X9Zero.slice(),
-  roomMap = $9X9Zero.slice();
+  blockMap = $9X9Zero.slice();
 
-for (var y = 0; y !== 9; y++) {
-  for (var x = 0; x !== 9; x++) {
-    const index = y * 9 + x;
-    rowMap[index] = y;
-    columnMap[index] = x;
-    roomMap[index] = Math.floor(y / 3) * 3 + Math.floor(x / 3);
+for (var r = 0; r !== 9; r++) {
+  for (var c = 0; c !== 9; c++) {
+    const index = r * 9 + c;
+    rowMap[index] = r;
+    columnMap[index] = c;
+    blockMap[index] = Math.floor(r / 3) * 3 + Math.floor(c / 3);
   }
 }
 
-const rowIncMap = $9Item.map(() => []),
-  columnIncMap = $9Item.map(() => []),
-  roomIncMap = $9Item.map(() => []);
+const rowAddMap = $9Item.map(() => []),
+  columnAddMap = $9Item.map(() => []),
+  blockAddMap = $9Item.map(() => []);
 
-for (var r = 0; r !== 9; r++) {
-  const rowInc = rowIncMap[r],
-    columnInc = columnIncMap[r],
-    roomInc = roomIncMap[r];
+for (var b = 0; b !== 9; b++) {
+  const rowAdd = rowAddMap[b],
+    columnAdd = columnAddMap[b],
+    blockAdd = blockAddMap[b];
 
-  const _x = r % 3,
-    _y = (r - _x) / 3;
+  const t = b % 3,
+    f = (b - t) / 3;
 
-  const rowMask = 0b111 << (_y * 3),
-    columnMask = 0b111 << (_x * 3);
+  const rowMask = 0b111 << (f * 3),
+    columnMask = 0b111 << (t * 3);
 
   for (var i = 0; i !== 9; i++) {
     const bit = 1 << i;
     if ((rowMask & bit) === 0) {
-      rowInc.push[i];
+      rowAdd.push[i];
     }
     if ((columnMask & bit) === 0) {
-      columnInc.push[i];
+      columnAdd.push[i];
     }
   }
 
-  const __x = _x,
-    __y = _y * 3;
+  const towerAdd = t,
+    floorAdd = f * 3;
   for (var i = 0; i !== 3; i++) {
-    const onY = i * 3 + __x;
-    if (r !== onY) {
-      roomInc.push[onY];
+    const onTower = i + floorAdd;
+    if (b !== onTower) {
+      blockAdd.push[onTower];
     }
-    const onX = i + __y;
-    if (r !== onX) {
-      roomInc.push[onX];
+    const onFloor = i * 3 + towerAdd;
+    if (b !== onFloor) {
+      blockAdd.push[onFloor];
     }
   }
 }
+
+// 每个确认cell，可以使受影响的20个cell 进行digit排除
+// 每个确认cell，可以使其他24个 region 进行cell排除
