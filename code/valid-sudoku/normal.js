@@ -3,25 +3,25 @@
  * @return {boolean}
  */
 var isValidSudoku = function(board) {
-  const columnRecord = nineZero.slice(),
-    rowRecord = nineZero.slice(),
-    roomRecord = nineZero.slice();
+  const columnValueMap = nineZero.slice(),
+    rowValueMap = nineZero.slice(),
+    blockValueMap = nineZero.slice();
 
-  for (var y = 0; y !== 9; y++) {
-    for (var x = 0; x !== 9; x++) {
-      const value = board[y][x];
-      if (value !== ".") {
-        const r = roomMap[y * 9 + x];
-        const bit = 1 << value;
-        const bitmap = columnRecord[x] | rowRecord[y] | roomRecord[r];
+  for (var r = 0; r !== 9; r++) {
+    for (var c = 0; c !== 9; c++) {
+      const digit = board[r][c];
+      if (digit !== ".") {
+        const b = roomMap[r * 9 + c];
+        const bit = 1 << digit;
+        const bitmap = columnValueMap[c] | rowValueMap[r] | blockValueMap[b];
 
         if ((bitmap & bit) !== 0) {
           return false;
         }
 
-        columnRecord[x] |= bit;
-        rowRecord[y] |= bit;
-        roomRecord[r] |= bit;
+        columnValueMap[c] |= bit;
+        rowValueMap[r] |= bit;
+        blockValueMap[b] |= bit;
       }
     }
   }
