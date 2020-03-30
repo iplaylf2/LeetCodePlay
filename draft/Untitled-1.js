@@ -43,8 +43,10 @@ var solveSudoku = function(board) {
 class SudokuState {
   static create(board) {
     const grid = $9X9Zero.slice();
-    const blankList = [];
+    const blankSet = new Set();
     const validator = Validator.create();
+
+    const valueList = [];
 
     for (var r = 0; r !== 9; r++) {
       for (var c = 0; c !== 9; c++) {
@@ -52,69 +54,102 @@ class SudokuState {
         const index = r * 9 + c;
 
         if (digit === ".") {
-          blankList.push(index);
+          blankSet.add(index);
           continue;
         }
 
         grid[index] = digit;
         const b = index$block[index];
-        const bit = 1 << digit;
+        validator.record(r, c, b, digit);
 
-        validator.record(r, c, b, bit);
+        valueList.push([index, digit]);
       }
     }
 
-    const hiddenStrategy = HiddenStrategy.create();
-    const lockedCandidateStrategy = LockedCandidateStrategy.create();
+    const byHidden = function() {
+      const valueList = [];
 
-    /**
-     * @type {[number,number][]}
-     */
-    const determineList = [];
+      while (true) {
+        const partValueList = [];
+        for (const index of blankSet) {
+          const [single, digit] = this.hidden(validator, index);
+          if (single) {
+            partValueList.push([index, digit]);
+          }
+        }
 
-    for (const index of blankList) {
-      const bitmap = validator.getBitmap(index);
-      const [determine, bit] = hiddenStrategy.recordCandidate(index, bitmap);
-      if (determine) {
-        determineList.push([index, bit]);
+        if (partValueList.length === 0) {
+          break;
+        }
+
+        for (const pair of partValueList) {
+          blankSet.delete(pair[0]);
+          valueList.push(pair);
+        }
       }
+
+      return valueList;
+    };
+
+    const lockedCandidateStrategy = LockedCandidateStrategy.create();
+    const byLockedCandidateStrategy = function(valueSource) {
+      lockedCandidateStrategy.fixAll(valueSource);
+
+      var valueList = valueSource;
+
+      while (true) {
+        for (const [index, digit] of valueSource) {
+        }
+      }
+
+      return valueList;
+    };
+
+    var whiteSource = [];
+    var valueSource = valueList;
+
+    while (true) {
+      var newValueList;
+
+      newValueList = byHidden();
+
+      newValueList = byLockedCandidateStrategy(
+        valueSource.concat(newValueList)
+      );
+
+      if (newValueList.length === 0) {
+        break;
+      }
+
+      valueSource = whiteSource;
     }
 
     return [
-      false,
-      new SudokuState(
-        grid,
-        blankList,
-        validator,
-        hiddenStrategy,
-        lockedCandidateStrategy
-      )
+      blankSet.size === 0,
+      new SudokuState(grid, blankSet, validator, lockedCandidateStrategy)
     ];
   }
 
-  constructor(
-    grid,
-    blankList,
-    validator,
-    hiddenStrategy,
-    lockedCandidateStrategy
-  ) {
+  static hidden(validator, index) {
+    const bitmap = validator.getBitmap(index);
+    const markBitmap = bitmap ^ 0b1111_1111_10;
+    const digit = singleBitmap(markBitmap);
+    return [digit !== notSingle, digit];
+  }
+
+  constructor(grid, blankSet, validator, lockedCandidateStrategy) {
     /**
      * @type {number[]}
      */
     this.grid = grid;
     /**
-     * @type {number[]}
+     * @type {Set<number>}
      */
-    this.blankList = blankList;
+    this.blankSet = blankSet;
     /**
      * @type {Validator}
      */
     this.validator = validator;
-    /**
-     * @type {HiddenStrategy}
-     */
-    this.hiddenStrategy = hiddenStrategy;
     /**
      * @type {LockedCandidateStrategy}
      */
@@ -158,7 +193,9 @@ class Validator {
     this.blockRecord = blockRecord;
   }
 
-  record(r, c, b, bit) {
+  record(r, c, b, digit) {
+    const bit = 1 << digit;
+
     this.rowRecord[r] |= bit;
     this.columnRecord[c] |= bit;
     this.blockRecord[b] |= bit;
@@ -172,7 +209,9 @@ class Validator {
     return this.rowRecord[r] | this.columnRecord[c] | this.blockRecord[b];
   }
 
-  validate(index, bit) {
+  validate(index, digit) {
+    const bit = 1 << digit;
+
     const r = index$row[index],
       c = index$column[index],
       b = index$block[index];
@@ -197,84 +236,95 @@ class Validator {
   }
 }
 
-class HiddenStrategy {
-  static create() {
-    const PMGrid = $9X9Item.slice().fill(null);
-    return new HiddenStrategy(PMGrid);
-  }
-
-  constructor(PMGrid, minIndex) {
-    /**
-     * @type {{bitmap:number,count:number}[]}
-     */
-    this.PMGrid = PMGrid;
-  }
-
-  recordCandidate(index, bitmap) {
-    bitmap ^= 0b111_111_111_0;
-
-    var count = 0;
-    for (var i = 0; i !== 9; i++) {
-      if ((bitmap & (0b10 << i)) !== 0) {
-        count++;
-      }
-    }
-
-    if (count === 1) {
-      return [true, bitmap];
-    }
-
-    this.PMGrid[index] = {
-      bitmap,
-      count
-    };
-
-    return [false, 0];
-  }
-
-  hidden(index, bit) {
-    const cell = this.PMGrid[index];
-
-    if (cell && cell.bitmap & bit) {
-      const bitmap = cell.bitmap ^ bit;
-      const count = cell.count - 1;
-
-      if (count === 1) {
-        this.PMGrid[index] = null;
-        return Math.log2(bitmap);
-      }
-
-      cell.bitmap = bitmap;
-      cell.count = count;
-    }
-
-    return 0;
-  }
-
-  clone() {
-    return new HiddenStrategy(this.PMGrid.map(cell => cell && { ...cell }));
-  }
-}
-
 class LockedCandidateStrategy {
   static create() {
-    return new LockedCandidateStrategy();
+    const rowLockedMap = $9Item.map(() => this.$9x9Fix.slice()),
+      columnLockedMap = $9Item.map(() => this.$9x9Fix.slice()),
+      blockLockedMap = $9Item.map(() => this.$9x9Fix.slice());
+
+    return new LockedCandidateStrategy(
+      rowLockedMap,
+      columnLockedMap,
+      blockLockedMap
+    );
+  }
+
+  static $9x9Fix = new Array(9 * 9).fill(0b111_111_111);
+  static $index(region, digit) {
+    return region * 9 + digit - 1;
   }
 
   constructor(rowLockedMap, columnLockedMap, blockLockedMap) {
+    /**
+     * @type {number[]}
+     */
     this.rowLockedMap = rowLockedMap;
+    /**
+     * @type {number[]}
+     */
     this.columnLockedMap = columnLockedMap;
+    /**
+     * @type {number[]}
+     */
     this.blockLockedMap = blockLockedMap;
+  }
+
+  fixAll(valueList) {
+    for (const [index, digit] of valueList) {
+      const r = index$row[index],
+        c = index$column[index],
+        b = index$block[index];
+
+      this.rowLockedMap[LockedCandidateStrategy.$index(r, digit)] = 0;
+      this.columnLockedMap[LockedCandidateStrategy.$index(c, digit)] = 0;
+      this.blockLockedMap[LockedCandidateStrategy.$index(b, digit)] = 0;
+    }
   }
 
   lock(index, digit) {
     const r = index$row[index],
       c = index$column[index],
       b = index$block[index];
+
+    for (var i = 0; i !== 9; i++) {
+      const bitmap = this.rowLockedMap[i * 9 + digit];
+      const bit = 1 << c;
+    }
   }
 
   clone() {}
 }
+
+const wrongDigit = 10;
+const notSingle = 11;
+const singleBitmap = function(bitmap) {
+  switch (bitmap) {
+    case 0:
+      return wrongDigit;
+    case 0b1:
+      return 0;
+    case 0b10:
+      return 1;
+    case 0b100:
+      return 2;
+    case 0b1000:
+      return 3;
+    case 0b1000_0:
+      return 4;
+    case 0b1000_00:
+      return 5;
+    case 0b1000_000:
+      return 6;
+    case 0b1000_0000:
+      return 7;
+    case 0b1000_0000_0:
+      return 8;
+    case 0b1000_0000_00:
+      return 9;
+    default:
+      return notSingle;
+  }
+};
 
 const $9Zero = new Array(9).fill(0);
 const $9X9Zero = new Array(9 * 9).fill(0);
