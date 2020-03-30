@@ -3,8 +3,8 @@
  * @return {void} Do not return anything, modify board in-place instead.
  */
 var solveSudoku = function(board) {
-  const sudokuState = SudokuState.create(board);
-  const complete = sudokuState.inferenceReliably();
+  const [complete, sudokuState] = SudokuState.create(board);
+
   if (complete) {
     sudokuState.fill(board);
     return;
@@ -67,13 +67,29 @@ class SudokuState {
     const hiddenStrategy = HiddenStrategy.create();
     const lockedCandidateStrategy = LockedCandidateStrategy.create();
 
-    return new SudokuState(
-      grid,
-      blankList,
-      validator,
-      hiddenStrategy,
-      lockedCandidateStrategy
-    );
+    /**
+     * @type {[number,number][]}
+     */
+    const determineList = [];
+
+    for (const index of blankList) {
+      const bitmap = validator.getBitmap(index);
+      const [determine, bit] = hiddenStrategy.recordCandidate(index, bitmap);
+      if (determine) {
+        determineList.push([index, bit]);
+      }
+    }
+
+    return [
+      false,
+      new SudokuState(
+        grid,
+        blankList,
+        validator,
+        hiddenStrategy,
+        lockedCandidateStrategy
+      )
+    ];
   }
 
   constructor(
@@ -105,23 +121,7 @@ class SudokuState {
     this.lockedCandidateStrategy = lockedCandidateStrategy;
   }
 
-  inferenceReliably() {
-    /**
-     * @type {[number,number][]}
-     */
-    const determineList = [];
-
-    for (const index of this.blankList) {
-      const bitmap = this.validator.getBitmap(index);
-      const [determine, bit] = this.hiddenStrategy.recordCandidate(
-        index,
-        bitmap
-      );
-      if (determine) {
-        determineList.push([index, bit]);
-      }
-    }
-  }
+  inferenceReliably() {}
 
   inference() {}
 
@@ -338,5 +338,8 @@ for (var b = 0; b !== 9; b++) {
   }
 }
 
-// 每个确认cell，可以使受影响的20个cell 进行digit排除
-// 每个确认cell，可以使其他24个 region 进行cell排除
+// 每个确认cell，可以使受影响的20个cell 进行digit排除 摒除法
+// 每个确认cell，可以使其他24个region 进行cell排除 区块法
+
+// 优化点
+// 摒除法可以根据新增的value mark若干个region,最后再根据被mark的region里的cell推理出新的value【
