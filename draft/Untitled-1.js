@@ -59,51 +59,11 @@ class SudokuState {
         }
 
         grid[index] = digit;
-        const b = index$block[index];
-        validator.record(r, c, b, digit);
-
         valueList.push([index, digit]);
       }
     }
 
-    const byHidden = function() {
-      const valueList = [];
-
-      while (true) {
-        const partValueList = [];
-        for (const index of blankSet) {
-          const [single, digit] = this.hidden(validator, index);
-          if (single) {
-            partValueList.push([index, digit]);
-          }
-        }
-
-        if (partValueList.length === 0) {
-          break;
-        }
-
-        for (const pair of partValueList) {
-          blankSet.delete(pair[0]);
-          valueList.push(pair);
-        }
-      }
-
-      return valueList;
-    };
-
     const lockedCandidateStrategy = LockedCandidateStrategy.create();
-    const byLockedCandidateStrategy = function(valueSource) {
-      lockedCandidateStrategy.fixAll(valueSource);
-
-      var valueList = valueSource;
-
-      while (true) {
-        for (const [index, digit] of valueSource) {
-        }
-      }
-
-      return valueList;
-    };
 
     var whiteSource = [];
     var valueSource = valueList;
@@ -128,6 +88,38 @@ class SudokuState {
       blankSet.size === 0,
       new SudokuState(grid, blankSet, validator, lockedCandidateStrategy)
     ];
+  }
+
+  static hiddenReliably(validator, blankSet, valueSource) {
+    const fullValueList = [];
+
+    while (true) {
+      for (const [index, digit] of valueSource) {
+        validator.recordByIndex(index, digit);
+      }
+
+      const partValueList = [];
+
+      for (const index of blankSet) {
+        const [single, digit] = this.hidden(validator, index);
+        if (single) {
+          partValueList.push([index, digit]);
+        }
+      }
+
+      if (partValueList.length === 0) {
+        break;
+      }
+
+      for (const pair of partValueList) {
+        blankSet.delete(pair[0]);
+        fullValueList.push(pair);
+      }
+
+      valueSource = partValueList;
+    }
+
+    return fullValueList;
   }
 
   static hidden(validator, index) {
@@ -201,6 +193,13 @@ class Validator {
     this.blockRecord[b] |= bit;
   }
 
+  recordByIndex(index) {
+    const r = index$row[index],
+      c = index$column[index],
+      b = index$block[index];
+    this.record(r, c, b, digit);
+  }
+
   getBitmap(index) {
     const r = index$row[index],
       c = index$column[index],
@@ -209,7 +208,7 @@ class Validator {
     return this.rowRecord[r] | this.columnRecord[c] | this.blockRecord[b];
   }
 
-  validate(index, digit) {
+  validateAndRecord(index, digit) {
     const bit = 1 << digit;
 
     const r = index$row[index],
@@ -281,6 +280,8 @@ class LockedCandidateStrategy {
     }
   }
 
+  lockReliably(){}
+
   lock(index, digit) {
     const r = index$row[index],
       c = index$column[index],
@@ -295,12 +296,12 @@ class LockedCandidateStrategy {
   clone() {}
 }
 
-const wrongDigit = 10;
+const wrongBit = 10;
 const notSingle = 11;
 const singleBitmap = function(bitmap) {
   switch (bitmap) {
     case 0:
-      return wrongDigit;
+      return wrongBit;
     case 0b1:
       return 0;
     case 0b10:
@@ -393,3 +394,5 @@ for (var b = 0; b !== 9; b++) {
 
 // 优化点
 // 摒除法可以根据新增的value mark若干个region,最后再根据被mark的region里的cell推理出新的value【
+
+//guess的时候再找最少选择的cell
