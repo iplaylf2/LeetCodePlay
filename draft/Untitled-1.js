@@ -94,9 +94,11 @@ class SudokuState {
     const fullValueList = [];
 
     while (true) {
-      for (const [index, digit] of valueSource) {
-        validator.recordByIndex(index, digit);
+      if (blankSet.size === 0) {
+        break;
       }
+
+      this.markAll(validator, valueSource);
 
       const partValueList = [];
 
@@ -120,6 +122,12 @@ class SudokuState {
     }
 
     return fullValueList;
+  }
+
+  static markAll(validator, valueList) {
+    for (const [index, digit] of valueList) {
+      validator.recordByIndex(index, digit);
+    }
   }
 
   static hidden(validator, index) {
@@ -237,9 +245,9 @@ class Validator {
 
 class LockedCandidateStrategy {
   static create() {
-    const rowLockedMap = $9Item.map(() => this.$9x9Fix.slice()),
-      columnLockedMap = $9Item.map(() => this.$9x9Fix.slice()),
-      blockLockedMap = $9Item.map(() => this.$9x9Fix.slice());
+    const rowLockedMap = this.$9x9Fix.slice(),
+      columnLockedMap = this.$9x9Fix.slice(),
+      blockLockedMap = this.$9x9Fix.slice();
 
     return new LockedCandidateStrategy(
       rowLockedMap,
@@ -268,6 +276,120 @@ class LockedCandidateStrategy {
     this.blockLockedMap = blockLockedMap;
   }
 
+  lockReliably(blankSet, valueSource) {
+    const fullValueList = [];
+
+    while (true) {
+      if (blankSet.size === 0) {
+        break;
+      }
+
+      this.fixAll(valueSource);
+
+      const partValueList = [];
+
+      for (const [index, digit] of valueSource) {
+        const r = index$row[index],
+          c = index$column[index],
+          b = index$block[index];
+
+        for (var i = 0; i !== 9; i++) {
+          const rowLockedIndex = LockedCandidateStrategy.$index(i, digit);
+          const columnIndexBitmap =
+            this.rowLockedMap[rowLockedIndex] & ~(1 << c);
+
+          const columnIndex = singleBitmap(columnIndexBitmap);
+
+          if (columnIndex !== notSingle && columnIndex !== blankBit) {
+            this.rowLockedMap[rowLockedIndex] = 0;
+
+            const index = i * 9 + columnIndex;
+            partValueList.push([index, digit]);
+          } else {
+            this.rowLockedMap[rowLockedIndex] = columnIndexBitmap;
+          }
+
+          const columnLockedIndex = LockedCandidateStrategy.$index(i, digit);
+          const rowIndexBitmap =
+            this.columnLockedMap[columnLockedIndex] & ~(1 << r);
+
+          const rowIndex = singleBitmap(rowIndexBitmap);
+
+          if (rowIndex !== notSingle && rowIndex !== blankBit) {
+            this.columnLockedMap[columnLockedIndex] = 0;
+
+            const index = i + rowIndex * 9;
+            partValueList.push([index, digit]);
+          } else {
+            this.columnLockedMap[columnLockedIndex] = rowIndexBitmap;
+          }
+        }
+
+        const t = b % 3,
+          floorAdd = b - t,
+          boxColumn = index % 3,
+          boxRow = ((index - boxColumn) / 3) % 3,
+          byBoxRow = boxRow * 3;
+
+        for (var i = 0; i !== 3; i++) {
+          const byFloor = i + floorAdd;
+
+          const blockLockedIndexByFloor = LockedCandidateStrategy.$index(
+            byFloor,
+            digit
+          );
+          const indexByFloorBitMap =
+            this.blockLockedMap[blockLockedIndexByFloor] & ~(0b111 << byBoxRow);
+
+          const indexByFloor = singleBitmap(indexByFloorBitMap);
+
+          if (indexByFloor !== notSingle && indexByFloor !== blankBit) {
+            this.blockLockedMap[blockLockedIndexByFloor] = 0;
+
+            const index = block$indexList[byFloor][indexByFloor];
+            partValueList.push([index, digit]);
+          } else {
+            this.columnLockedMap[blockLockedIndexByFloor] = indexByFloorBitMap;
+          }
+
+          const byTower = t + i * 3;
+
+          const blockLockedIndexByTower = LockedCandidateStrategy.$index(
+            byTower,
+            digit
+          );
+          const indexByTowerBitmap =
+            this.blockLockedMap[blockLockedIndexByTower] &
+            ~(0b001_001_001 << boxColumn);
+
+          const indexByTower = singleBitmap(indexByTowerBitmap);
+
+          if (indexByTower !== notSingle && indexByTower !== blankBit) {
+            this.blockLockedMap[blockLockedIndexByTower] = 0;
+
+            const index = block$indexList[byTower][indexByTower];
+            partValueList.push([index, digit]);
+          } else {
+            this.columnLockedMap[blockLockedIndexByTower] = indexByTowerBitmap;
+          }
+        }
+      }
+
+      if (partValueList.length === 0) {
+        break;
+      }
+
+      for (const pair of partValueList) {
+        blankSet.delete(pair[0]);
+        fullValueList.push(pair);
+      }
+
+      valueSource = partValueList;
+    }
+
+    return fullValueList;
+  }
+
   fixAll(valueList) {
     for (const [index, digit] of valueList) {
       const r = index$row[index],
@@ -279,8 +401,6 @@ class LockedCandidateStrategy {
       this.blockLockedMap[LockedCandidateStrategy.$index(b, digit)] = 0;
     }
   }
-
-  lockReliably(){}
 
   lock(index, digit) {
     const r = index$row[index],
@@ -296,6 +416,7 @@ class LockedCandidateStrategy {
   clone() {}
 }
 
+const blankBit = 10;
 const wrongBit = 10;
 const notSingle = 11;
 const singleBitmap = function(bitmap) {
@@ -347,45 +468,6 @@ for (var r = 0; r !== 9; r++) {
     index$block[index] = b;
 
     block$indexList[b].push(index);
-  }
-}
-
-const rowAddMap = $9Item.map(() => []),
-  columnAddMap = $9Item.map(() => []),
-  blockAddMap = $9Item.map(() => []);
-
-for (var b = 0; b !== 9; b++) {
-  const rowAdd = rowAddMap[b],
-    columnAdd = columnAddMap[b],
-    blockAdd = blockAddMap[b];
-
-  const t = b % 3,
-    f = (b - t) / 3;
-
-  const rowMask = 0b111 << (f * 3),
-    columnMask = 0b111 << (t * 3);
-
-  for (var i = 0; i !== 9; i++) {
-    const bit = 1 << i;
-    if ((rowMask & bit) === 0) {
-      rowAdd.push[i];
-    }
-    if ((columnMask & bit) === 0) {
-      columnAdd.push[i];
-    }
-  }
-
-  const floorAdd = f * 3,
-    towerAdd = t;
-  for (var i = 0; i !== 3; i++) {
-    const onFloor = i + floorAdd;
-    if (b !== onFloor) {
-      blockAdd.push[onFloor];
-    }
-    const onTower = i * 3 + towerAdd;
-    if (b !== onTower) {
-      blockAdd.push[onTower];
-    }
   }
 }
 
