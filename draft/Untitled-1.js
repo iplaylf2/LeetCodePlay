@@ -256,10 +256,50 @@ class LockedCandidateStrategy {
     );
   }
 
-  static $9x9Fix = new Array(9 * 9).fill(0b111_111_111);
   static $index(region, digit) {
     return region * 9 + digit - 1;
   }
+
+  static tryClaiming(bitmap) {
+    switch (bitmap) {
+      //row
+      case 0b111:
+      case 0b110:
+      case 0b101:
+      case 0b011:
+        break;
+      case 0b111 << 3:
+      case 0b110 << 3:
+      case 0b101 << 3:
+      case 0b011 << 3:
+        break;
+      case 0b111 << 6:
+      case 0b110 << 6:
+      case 0b101 << 6:
+      case 0b011 << 6:
+        break;
+      //column
+      case 0b001_001_001:
+      case 0b001_001_000:
+      case 0b001_000_001:
+      case 0b000_001_001:
+        break;
+      case 0b001_001_001 << 1:
+      case 0b001_001_000 << 1:
+      case 0b001_000_001 << 1:
+      case 0b000_001_001 << 1:
+        break;
+      case 0b001_001_001 << 2:
+      case 0b001_001_000 << 2:
+      case 0b001_000_001 << 2:
+      case 0b000_001_001 << 2:
+        break;
+      default:
+        break;
+    }
+  }
+
+  static $9x9Fix = new Array(9 * 9).fill(0b111_111_111);
 
   constructor(rowLockedMap, columnLockedMap, blockLockedMap) {
     /**
