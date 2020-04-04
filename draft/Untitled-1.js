@@ -273,12 +273,12 @@ class LockedCandidateStrategy {
       case 0b110 << 3:
       case 0b101 << 3:
       case 0b011 << 3:
-        return [this.rowClaiming, 3];
+        return [this.rowClaiming, 1];
       case 0b111 << 6:
       case 0b110 << 6:
       case 0b101 << 6:
       case 0b011 << 6:
-        return [this.rowClaiming, 6];
+        return [this.rowClaiming, 2];
       //column
       case 0b001_001_001:
       case 0b001_001_000:
@@ -335,105 +335,7 @@ class LockedCandidateStrategy {
 
       this.fixAll(valueSource);
 
-      const partValueList = [];
-
-      for (const [index, digit] of valueSource) {
-        const r = index$row[index],
-          c = index$column[index],
-          b = index$block[index];
-
-        for (var i = 0; i !== 9; i++) {
-          const rowLockedIndex = LockedCandidateStrategy.$index(i, digit);
-          const columnIndexBitmap =
-            this.rowLockedMap[rowLockedIndex] & ~(1 << c);
-
-          const columnIndex = singleBitmap(columnIndexBitmap);
-
-          if (columnIndex !== notSingle && columnIndex !== blankBit) {
-            this.rowLockedMap[rowLockedIndex] = 0;
-
-            const index = i * 9 + columnIndex;
-            partValueList.push([index, digit]);
-          } else {
-            this.rowLockedMap[rowLockedIndex] = columnIndexBitmap;
-          }
-
-          const columnLockedIndex = LockedCandidateStrategy.$index(i, digit);
-          const rowIndexBitmap =
-            this.columnLockedMap[columnLockedIndex] & ~(1 << r);
-
-          const rowIndex = singleBitmap(rowIndexBitmap);
-
-          if (rowIndex !== notSingle && rowIndex !== blankBit) {
-            this.columnLockedMap[columnLockedIndex] = 0;
-
-            const index = i + rowIndex * 9;
-            partValueList.push([index, digit]);
-          } else {
-            this.columnLockedMap[columnLockedIndex] = rowIndexBitmap;
-          }
-        }
-
-        const t = b % 3,
-          floorAdd = b - t,
-          boxColumn = index % 3,
-          boxRow = ((index - boxColumn) / 3) % 3,
-          byBoxRow = boxRow * 3;
-
-        for (var i = 0; i !== 3; i++) {
-          const byFloor = i + floorAdd;
-
-          const blockLockedIndexByFloor = LockedCandidateStrategy.$index(
-            byFloor,
-            digit
-          );
-          const indexByFloorBitMap =
-            this.blockLockedMap[blockLockedIndexByFloor] & ~(0b111 << byBoxRow);
-
-          const indexByFloor = singleBitmap(indexByFloorBitMap);
-
-          if (indexByFloor !== notSingle && indexByFloor !== blankBit) {
-            this.blockLockedMap[blockLockedIndexByFloor] = 0;
-
-            const index = block$indexList[byFloor][indexByFloor];
-            partValueList.push([index, digit]);
-          } else {
-            this.columnLockedMap[blockLockedIndexByFloor] = indexByFloorBitMap;
-          }
-
-          const byTower = t + i * 3;
-
-          const blockLockedIndexByTower = LockedCandidateStrategy.$index(
-            byTower,
-            digit
-          );
-          const indexByTowerBitmap =
-            this.blockLockedMap[blockLockedIndexByTower] &
-            ~(0b001_001_001 << boxColumn);
-
-          const indexByTower = singleBitmap(indexByTowerBitmap);
-
-          if (indexByTower !== notSingle && indexByTower !== blankBit) {
-            this.blockLockedMap[blockLockedIndexByTower] = 0;
-
-            const index = block$indexList[byTower][indexByTower];
-            partValueList.push([index, digit]);
-          } else {
-            this.columnLockedMap[blockLockedIndexByTower] = indexByTowerBitmap;
-          }
-        }
-      }
-
-      if (partValueList.length === 0) {
-        break;
-      }
-
-      for (const pair of partValueList) {
-        blankSet.delete(pair[0]);
-        fullValueList.push(pair);
-      }
-
-      valueSource = partValueList;
+      
     }
 
     return fullValueList;
@@ -488,20 +390,20 @@ class LockedCandidateStrategy {
         this.blockLockedMap[blockLockedIndex] = inBlockIndexBitmap;
 
         if (alreadyClaiming === LockedCandidateStrategy.notClaiming) {
-          const [claiming, start] = LockedCandidateStrategy.tryClaiming(
+          const [claiming, offset] = LockedCandidateStrategy.tryClaiming(
             inBlockIndexBitmap
           );
           switch (claiming) {
             case LockedCandidateStrategy.rowClaiming:
               {
-                const index = block$indexList[block][start];
-                rowValueList.push([index$row[index], digit]);
+                const row = Math.floor(block / 3) * 3 + offset;
+                rowValueList.push([row, digit]);
               }
               break;
             case LockedCandidateStrategy.columnClaiming:
               {
-                const index = block$indexList[block][start];
-                columnValueList.push([index$column[index], digit]);
+                const column = (block % 3) * 3 + offset;
+                columnValueList.push([column, digit]);
               }
               break;
           }
@@ -509,7 +411,7 @@ class LockedCandidateStrategy {
       }
     }
 
-    return valueList;
+    return [valueList, rowValueList, columnValueList];
   }
 
   lockByColumnReliably(row, digit) {
@@ -561,20 +463,20 @@ class LockedCandidateStrategy {
         this.blockLockedMap[blockLockedIndex] = inBlockIndexBitmap;
 
         if (alreadyClaiming === LockedCandidateStrategy.notClaiming) {
-          const [claiming, start] = LockedCandidateStrategy.tryClaiming(
+          const [claiming, offset] = LockedCandidateStrategy.tryClaiming(
             inBlockIndexBitmap
           );
           switch (claiming) {
             case LockedCandidateStrategy.rowClaiming:
               {
-                const index = block$indexList[block][start];
-                rowValueList.push([index$row[index], digit]);
+                const row = Math.floor(block / 3) * 3 + offset;
+                rowValueList.push([row, digit]);
               }
               break;
             case LockedCandidateStrategy.columnClaiming:
               {
-                const index = block$indexList[block][start];
-                columnValueList.push([index$column[index], digit]);
+                const column = (block % 3) * 3 + offset;
+                columnValueList.push([column, digit]);
               }
               break;
           }
@@ -582,7 +484,7 @@ class LockedCandidateStrategy {
       }
     }
 
-    return valueList;
+    return [valueList, rowValueList, columnValueList];
   }
 
   fixAll(valueList) {
