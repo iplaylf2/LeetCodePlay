@@ -65,77 +65,13 @@ class SudokuState {
 
     const lockedCandidateStrategy = LockedCandidateStrategy.create();
 
-    var whiteSource = [];
-    var valueSource = valueList;
-
-    while (true) {
-      var newValueList;
-
-      newValueList = byHidden();
-
-      newValueList = byLockedCandidateStrategy(
-        valueSource.concat(newValueList)
-      );
-
-      if (newValueList.length === 0) {
-        break;
-      }
-
-      valueSource = whiteSource;
-    }
-
     return [
       blankSet.size === 0,
       new SudokuState(grid, blankSet, validator, lockedCandidateStrategy),
     ];
   }
 
-  static hiddenReliably(validator, blankSet, valueSource) {
-    const fullValueList = [];
-
-    while (true) {
-      if (blankSet.size === 0) {
-        break;
-      }
-
-      this.markAll(validator, valueSource);
-
-      const valueList = [];
-
-      for (const index of blankSet) {
-        const [single, digit] = this.hidden(validator, index);
-        if (single) {
-          valueList.push([index, digit]);
-        }
-      }
-
-      if (valueList.length === 0) {
-        break;
-      }
-
-      for (const pair of valueList) {
-        blankSet.delete(pair[0]);
-        fullValueList.push(pair);
-      }
-
-      valueSource = valueList;
-    }
-
-    return fullValueList;
-  }
-
-  static markAll(validator, valueList) {
-    for (const [index, digit] of valueList) {
-      validator.recordByIndex(index, digit);
-    }
-  }
-
-  static hidden(validator, index) {
-    const bitmap = validator.getBitmap(index);
-    const markBitmap = bitmap ^ 0b1111_1111_10;
-    const digit = singleBitmap(markBitmap);
-    return [digit !== notSingle, digit];
-  }
+  static hiddenReliably(validator, blankSet, valueSource) {}
 
   constructor(grid, blankSet, validator, lockedCandidateStrategy) {
     /**
@@ -173,73 +109,90 @@ class SudokuState {
   }
 }
 
-class Validator {
-  static create() {
-    return new Validator($9Zero.slice(), $9Zero.slice(), $9Zero.slice());
+class HiddenStrategy {
+  static create(blankSet) {
+    return new HiddenStrategy(
+      blankSet,
+      $9Zero.slice(),
+      $9Zero.slice(),
+      $9Zero.slice()
+    );
   }
 
-  constructor(rowRecord, columnRecord, blockRecord) {
+  constructor(blankSet, rowMark, columnMark, blockMark) {
+    /**
+     * @type {Set<number>}
+     */
+    this.blankSet = blankSet;
     /**
      * @type {number[]}
      */
-    this.rowRecord = rowRecord;
+    this.rowMark = rowMark;
     /**
      * @type {number[]}
      */
-    this.columnRecord = columnRecord;
+    this.columnMark = columnMark;
     /**
      * @type {number[]}
      */
-    this.blockRecord = blockRecord;
+    this.blockMark = blockMark;
   }
 
-  record(r, c, b, digit) {
-    const bit = 1 << digit;
+  hiddenReliably(valueSource) {
+    const fullValueList = [];
 
-    this.rowRecord[r] |= bit;
-    this.columnRecord[c] |= bit;
-    this.blockRecord[b] |= bit;
+    while (true) {
+      if (this.blankSet.size === 0) {
+        break;
+      }
+
+      this.markAll(valueSource);
+
+      const valueList = [];
+
+      for (const index of this.blankSet) {
+        const digit = this.single(index);
+        if (digit !== notSingle) {
+          valueList.push([index, digit]);
+        }
+      }
+
+      if (valueList.length === 0) {
+        break;
+      }
+
+      for (const pair of valueList) {
+        blankSet.delete(pair[0]);
+        fullValueList.push(pair);
+      }
+
+      valueSource = valueList;
+    }
+
+    return fullValueList;
   }
 
-  recordByIndex(index) {
-    const r = index$row[index],
-      c = index$column[index],
-      b = index$block[index];
-    this.record(r, c, b, digit);
-  }
+  markAll(valueList) {
+    for (const [index, digit] of valueList) {
+      const r = index$row[index],
+        c = index$column[index],
+        b = index$block[index];
+      const bit = 1 << digit;
 
-  getBitmap(index) {
-    const r = index$row[index],
-      c = index$column[index],
-      b = index$block[index];
-
-    return this.rowRecord[r] | this.columnRecord[c] | this.blockRecord[b];
-  }
-
-  validateAndRecord(index, digit) {
-    const bit = 1 << digit;
-
-    const r = index$row[index],
-      c = index$column[index],
-      b = index$block[index];
-
-    const bitmap =
-      this.rowRecord[r] | this.columnRecord[c] | this.blockRecord[b];
-
-    if (bitmap & bit) {
-      return false;
-    } else {
-      this.record(r, c, b, bit);
-      return true;
+      this.rowMark[r] |= bit;
+      this.columnMark[c] |= bit;
+      this.blockMark[b] |= bit;
     }
   }
 
-  clone() {
-    return new Validator(
-      this.rowRecord.slice(),
-      this.columnRecord.slice(),
-      this.blockRecord.slice()
-    );
+  single(index) {
+    const r = index$row[index],
+      c = index$column[index],
+      b = index$block[index];
+
+    const bitmap = this.rowMark[r] | this.columnMark[c] | this.blockMark[b];
+    const markBitmap = bitmap ^ 0b1111_1111_10;
+    return singleBitmap(markBitmap);
   }
 }
 
@@ -625,11 +578,5 @@ for (var r = 0; r !== 9; r++) {
     block$indexList[b].push(index);
   }
 }
-
-// 每个确认cell，可以使受影响的20个cell 进行digit排除 摒除法
-// 每个确认cell，可以使其他24个region 进行cell排除 区块法
-
-// 优化点
-// 摒除法可以根据新增的value mark若干个region,最后再根据被mark的region里的cell推理出新的value【
 
 //guess的时候再找最少选择的cell
