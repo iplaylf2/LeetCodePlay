@@ -44,7 +44,6 @@ class SudokuState {
   static create(board) {
     const grid = $9X9Zero.slice();
     const blankSet = new Set();
-    const validator = Validator.create();
 
     const valueList = [];
 
@@ -63,15 +62,16 @@ class SudokuState {
       }
     }
 
-    const lockedCandidateStrategy = LockedCandidateStrategy.create();
+    const hiddenStrategy = HiddenStrategy.create(blankSet);
+    const lockedCandidateStrategy = LockedCandidateStrategy.create(blankSet);
 
     return [
       blankSet.size === 0,
-      new SudokuState(grid, blankSet, validator, lockedCandidateStrategy),
+      new SudokuState(grid, blankSet, hiddenStrategy, lockedCandidateStrategy),
     ];
   }
 
-  constructor(grid, blankSet, validator, lockedCandidateStrategy) {
+  constructor(grid, blankSet, hiddenStrategy, lockedCandidateStrategy) {
     /**
      * @type {number[]}
      */
@@ -81,16 +81,14 @@ class SudokuState {
      */
     this.blankSet = blankSet;
     /**
-     * @type {Validator}
+     * @type {HiddenStrategy}
      */
-    this.validator = validator;
+    this.hiddenStrategy = hiddenStrategy;
     /**
      * @type {LockedCandidateStrategy}
      */
     this.lockedCandidateStrategy = lockedCandidateStrategy;
   }
-
-  inferenceReliably() {}
 
   inference() {}
 
@@ -149,7 +147,7 @@ class HiddenStrategy {
         if (digit !== notSingle) {
           valueList.push([index, digit]);
           fullValueList.push(pair);
-          
+
           blankSet.delete(pair[0]);
           if (this.blankSet.size === 0) {
             return [true, fullValueList];
@@ -189,6 +187,8 @@ class HiddenStrategy {
     const markBitmap = bitmap ^ 0b111_111_111_0;
     return singleBitmap(markBitmap);
   }
+
+  clone(blankSet) {}
 }
 
 class LockedCandidateStrategy {
@@ -551,7 +551,7 @@ class LockedCandidateStrategy {
     return [false, valueList, rowValueList, columnValueList];
   }
 
-  clone() {}
+  clone(blankSet) {}
 }
 
 const blankBit = 10;
@@ -567,19 +567,19 @@ const singleBitmap = function (bitmap) {
       return 1;
     case 0b100:
       return 2;
-    case 0b1000:
+    case 0b1_000:
       return 3;
-    case 0b1000_0:
+    case 0b10_000:
       return 4;
-    case 0b1000_00:
+    case 0b100_000:
       return 5;
-    case 0b1000_000:
+    case 0b1_000_000:
       return 6;
-    case 0b1000_0000:
+    case 0b10_000_000:
       return 7;
-    case 0b1000_0000_0:
+    case 0b100_000_000:
       return 8;
-    case 0b1000_0000_00:
+    case 0b1_000_000_000:
       return 9;
     default:
       return notSingle;
