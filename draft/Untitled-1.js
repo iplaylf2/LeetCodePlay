@@ -650,20 +650,20 @@ class LockedCandidateStrategy {
 
       for (const [row, digit] of rowValueSource) {
         const [
-          state,
+          status,
           _valueList,
           _rowValueList,
           _columnValueList,
         ] = this.lockByRowReliably(row, digit);
 
-        switch (state) {
+        switch (status) {
           case SudokuState.complete:
             fullValueList.push(...valueList, ..._valueList);
-            return [state, fullValueList];
+            return [status, fullValueList];
           case SudokuState.incomplete:
             break;
           case SudokuState.wrong:
-            return [state];
+            return [status];
         }
 
         valueList.push(..._valueList);
@@ -673,20 +673,20 @@ class LockedCandidateStrategy {
 
       for (const [column, digit] of columnValueSource) {
         const [
-          state,
+          status,
           _valueList,
           _rowValueList,
           _columnValueList,
         ] = this.lockByColumnReliably(column, digit);
 
-        switch (state) {
+        switch (status) {
           case SudokuState.complete:
             fullValueList.push(...valueList, ..._valueList);
-            return [state, fullValueList];
+            return [status, fullValueList];
           case SudokuState.incomplete:
             break;
           case SudokuState.wrong:
-            return [state];
+            return [status];
         }
 
         valueList.push(..._valueList);
