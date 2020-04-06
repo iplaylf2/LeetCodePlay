@@ -588,6 +588,130 @@ class LockedCandidateStrategy {
     return [false, fullValueList];
   }
 
+  lock(valueSource) {
+    var rowValueSource = [],
+      columnValueSource = [];
+
+    const fullValueList = [];
+
+    while (true) {
+      this.fixAll(valueSource);
+
+      const valueList = [],
+        rowValueList = [],
+        columnValueList = [];
+
+      for (const [index, digit] of valueSource) {
+        const r = index$row[index],
+          c = index$column[index];
+
+        var [
+          status,
+          _valueList,
+          _rowValueList,
+          _columnValueList,
+        ] = this.lockByRowReliably(r, digit);
+
+        switch (status) {
+          case SudokuState.complete:
+            fullValueList.push(...valueList, ..._valueList);
+            return [status, fullValueList];
+          case SudokuState.incomplete:
+            break;
+          case SudokuState.wrong:
+            return [status];
+        }
+
+        valueList.push(..._valueList);
+        rowValueList.push(..._rowValueList);
+        columnValueList.push(..._columnValueList);
+
+        var [
+          status,
+          _valueList,
+          _rowValueList,
+          _columnValueList,
+        ] = this.lockByColumnReliably(c, digit);
+
+        switch (status) {
+          case SudokuState.complete:
+            fullValueList.push(...valueList, ..._valueList);
+            return [status, fullValueList];
+          case SudokuState.incomplete:
+            break;
+          case SudokuState.wrong:
+            return [status];
+        }
+
+        valueList.push(..._valueList);
+        rowValueList.push(..._rowValueList);
+        columnValueList.push(..._columnValueList);
+      }
+
+      for (const [row, digit] of rowValueSource) {
+        const [
+          state,
+          _valueList,
+          _rowValueList,
+          _columnValueList,
+        ] = this.lockByRowReliably(row, digit);
+
+        switch (state) {
+          case SudokuState.complete:
+            fullValueList.push(...valueList, ..._valueList);
+            return [state, fullValueList];
+          case SudokuState.incomplete:
+            break;
+          case SudokuState.wrong:
+            return [state];
+        }
+
+        valueList.push(..._valueList);
+        rowValueList.push(..._rowValueList);
+        columnValueList.push(..._columnValueList);
+      }
+
+      for (const [column, digit] of columnValueSource) {
+        const [
+          state,
+          _valueList,
+          _rowValueList,
+          _columnValueList,
+        ] = this.lockByColumnReliably(column, digit);
+
+        switch (state) {
+          case SudokuState.complete:
+            fullValueList.push(...valueList, ..._valueList);
+            return [state, fullValueList];
+          case SudokuState.incomplete:
+            break;
+          case SudokuState.wrong:
+            return [state];
+        }
+
+        valueList.push(..._valueList);
+        rowValueList.push(..._rowValueList);
+        columnValueList.push(..._columnValueList);
+      }
+
+      if (
+        valueList.length === 0 &&
+        rowValueList.length === 0 &&
+        columnValueList.length === 0
+      ) {
+        break;
+      }
+
+      fullValueList.push(...valueList);
+
+      valueSource = valueList;
+      rowValueSource = rowValueList;
+      columnValueSource = columnValueList;
+    }
+
+    return [SudokuState.incomplete, fullValueList];
+  }
+
   fixAll(valueList) {
     for (const [index, digit] of valueList) {
       const r = index$row[index],
@@ -681,6 +805,8 @@ class LockedCandidateStrategy {
     return [false, valueList, rowValueList, columnValueList];
   }
 
+  lockByRow(row, digit) {}
+
   lockByColumnReliably(column, digit) {
     const valueList = [],
       rowValueList = [],
@@ -762,6 +888,8 @@ class LockedCandidateStrategy {
     return [false, valueList, rowValueList, columnValueList];
   }
 
+  lockByColumn(column, digit) {}
+
   clone(blankSet) {
     return new LockedCandidateStrategy(
       blankSet,
@@ -777,8 +905,8 @@ LockedCandidateStrategy.notClaiming = 0;
 LockedCandidateStrategy.rowClaiming = 1;
 LockedCandidateStrategy.columnClaiming = 2;
 
-const blankBit = 10;
-const wrongBit = 10;
+const blankBit = 0;
+const wrongBit = 0;
 const notSingle = 11;
 const singleBitmap = function (bitmap) {
   switch (bitmap) {
