@@ -325,6 +325,46 @@ class HiddenStrategy {
     return [false, fullValueList];
   }
 
+  hidden(valueSource) {
+    const fullValueList = [];
+
+    while (true) {
+      this.markAll(valueSource);
+
+      const valueList = [];
+
+      for (const index of this.blankSet) {
+        const bitmap = this.getMarkBitmap(index);
+        const digit = singleBitmap(bitmap);
+
+        switch (digit) {
+          case wrongBit:
+            return [SudokuState.wrong];
+          case notSingle:
+            break;
+          default:
+            const value = [index, digit];
+            valueList.push(value);
+            fullValueList.push(value);
+
+            this.blankSet.delete(index);
+            if (this.blankSet.size === 0) {
+              return [SudokuState.complete, fullValueList];
+            }
+            break;
+        }
+      }
+
+      if (valueList.length === 0) {
+        break;
+      }
+
+      valueSource = valueList;
+    }
+
+    return [SudokuState.incomplete, fullValueList];
+  }
+
   markAll(valueList) {
     for (const [index, digit] of valueList) {
       this.mark(index, digit);
