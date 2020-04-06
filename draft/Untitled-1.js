@@ -62,13 +62,62 @@ class SudokuState {
       }
     }
 
+    if (blankSet.size === 0) {
+      return [true, new SudokuState(grid)];
+    }
+
     const hiddenStrategy = HiddenStrategy.create(blankSet);
     const lockedCandidateStrategy = LockedCandidateStrategy.create(blankSet);
 
+    var [complete, _valueList] = hiddenStrategy.hiddenReliably(valueList);
+    if (complete) {
+      this.fill(grid, _valueList);
+      return [true, new SudokuState(grid)];
+    }
+
+    valueList.push(..._valueList);
+    
+    var [complete, _valueList] = lockedCandidateStrategy.lockReliably(
+      valueList
+    );
+    if (complete) {
+      this.fill(grid, _valueList);
+      return [true, new SudokuState(grid)];
+    }
+
+    var valueList$a = _valueList;
+    while (valueList$a.length !== 0) {
+      var [complete, valueList$b] = hiddenStrategy.hiddenReliably(valueList$a);
+
+      if (complete) {
+        this.fill(grid, valueList$b);
+        return [true, new SudokuState(grid)];
+      }
+
+      if (valueList$b.length === 0) {
+        break;
+      }
+
+      var [complete, valueList$a] = lockedCandidateStrategy.lockReliably(
+        valueList$b
+      );
+
+      if (complete) {
+        this.fill(grid, valueList$a);
+        return [true, new SudokuState(grid)];
+      }
+    }
+
     return [
-      blankSet.size === 0,
+      false,
       new SudokuState(grid, blankSet, hiddenStrategy, lockedCandidateStrategy),
     ];
+  }
+
+  static fill(grid, valueList) {
+    for (const [index, digit] of valueList) {
+      grid[index] = digit;
+    }
   }
 
   constructor(grid, blankSet, hiddenStrategy, lockedCandidateStrategy) {
