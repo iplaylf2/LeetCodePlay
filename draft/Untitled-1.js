@@ -12,10 +12,10 @@ var solveSudoku = function (board) {
 
   const snapshotList = [];
   var dilemma = sudokuState;
-  var branch = dilemma.tryCell();
+  var [branch, index, digit] = dilemma.tryCell();
 
   while (true) {
-    switch (branch.inference()) {
+    switch (branch.inference(index, digit)) {
       case SudokuState.complete:
         branch.fill(board);
         return;
@@ -23,11 +23,11 @@ var solveSudoku = function (board) {
         snapshotList.push(dilemma);
         dilemma = branch;
 
-        branch = dilemma.tryCell();
+        [branch, index, digit] = dilemma.tryCell();
         continue;
       case SudokuState.wrong:
         while (true) {
-          [available, branch] = dilemma.tryDigit();
+          [available, branch, index, digit] = dilemma.tryDigit();
           if (available) {
             break;
           }
@@ -143,8 +143,9 @@ class SudokuState {
     this.lockedCandidateStrategy = lockedCandidateStrategy;
   }
 
-  inference() {
-    var valueList$a = slot;
+  inference(index, digit) {
+    var valueList$a = [[index, digit]];
+
     do {
       var [status, valueList$b] = this.hiddenStrategy.hidden(valueList$a);
 
@@ -183,9 +184,61 @@ class SudokuState {
   }
 
   tryCell() {
+    const [index] = this.blankSet;
+    var bitmap = this.hiddenStrategy.getMarkBitmap(index);
+
+    for (var digit = 1; digit <= 9; digit++) {
+      bitmap = bitmap >> 1;
+      if ((bitmap & 1) === 1) {
+        break;
+      }
+    }
+
+    /**
+     * @type {number}
+     */
+    this.$tryIndex = index;
+    /**
+     * @type {number}
+     */
+    this.$tryBitmap = bitmap;
+    /**
+     * @type {number}
+     */
+    this.$tryDigit = digit;
+
+    const newState = this.clone();
+    newState.blankSet.delete(index);
+    newState.grid[index] = digit;
+
+    return [newState, index, digit];
   }
 
-  tryDigit() {}
+  tryDigit() {
+    const index = this.$tryIndex;
+    var digit = this.$tryDigit;
+    var bitmap = this.$tryBitmap;
+
+    for (digit++; digit <= 9; digit++) {
+      bitmap = bitmap >> 1;
+      if ((bitmap & 1) === 1) {
+        break;
+      }
+    }
+
+    if (digit === 10) {
+      return [false];
+    }
+
+    this.$tryDigit = digit;
+    this.$tryBitmap = bitmap;
+
+    const newState = this.clone();
+    newState.blankSet.delete(index);
+    newState.grid[index] = digit;
+
+    return [true, newState, index, digit];
+  }
 
   fill(board) {
     for (var r = 0; r !== 9; r++) {
@@ -193,6 +246,15 @@ class SudokuState {
         board[r][c] = this.grid[r * 9 + c];
       }
     }
+  }
+
+  clone() {
+    return new SudokuState(
+      this.grid.slice(),
+      new Set(this.blankSet),
+      this.hiddenStrategy.clone(this.blankSet),
+      this.lockedCandidateStrategy.clone(this.blankSet)
+    );
   }
 }
 
@@ -265,15 +327,19 @@ class HiddenStrategy {
 
   markAll(valueList) {
     for (const [index, digit] of valueList) {
-      const r = index$row[index],
-        c = index$column[index],
-        b = index$block[index];
-      const bit = 1 << digit;
-
-      this.rowMark[r] |= bit;
-      this.columnMark[c] |= bit;
-      this.blockMark[b] |= bit;
+      this.mark(index, digit);
     }
+  }
+
+  mark(index, digit) {
+    const r = index$row[index],
+      c = index$column[index],
+      b = index$block[index];
+    const bit = 1 << digit;
+
+    this.rowMark[r] |= bit;
+    this.columnMark[c] |= bit;
+    this.blockMark[b] |= bit;
   }
 
   getMarkBitmap(index) {
@@ -287,7 +353,14 @@ class HiddenStrategy {
     return markBitmap;
   }
 
-  clone(blankSet) {}
+  clone(blankSet) {
+    return new HiddenStrategy(
+      blankSet,
+      this.rowMark.slice(),
+      this.columnMark.slice(),
+      this.blockMark.slice()
+    );
+  }
 }
 
 class LockedCandidateStrategy {
@@ -649,7 +722,14 @@ class LockedCandidateStrategy {
     return [false, valueList, rowValueList, columnValueList];
   }
 
-  clone(blankSet) {}
+  clone(blankSet) {
+    return new LockedCandidateStrategy(
+      blankSet,
+      this.rowLockedMap.slice(),
+      this.columnLockedMap.slice(),
+      this.blockLockedMap.slice()
+    );
+  }
 }
 
 LockedCandidateStrategy.$9x9Fix = new Array(9 * 9).fill(0b111_111_111);
