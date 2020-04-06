@@ -42,7 +42,7 @@ var solveSudoku = function (board) {
 
 class SudokuState {
   static create(board) {
-    const grid = $9X9Zero.slice();
+    const grid = $9x9Slot.slice();
     const blankSet = new Set();
 
     const valueList = [];
@@ -70,8 +70,9 @@ class SudokuState {
     const lockedCandidateStrategy = LockedCandidateStrategy.create(blankSet);
 
     var [complete, _valueList] = hiddenStrategy.hiddenReliably(valueList);
+
+    this.fill(grid, _valueList);
     if (complete) {
-      this.fill(grid, _valueList);
       return [true, new SudokuState(grid)];
     }
 
@@ -80,8 +81,9 @@ class SudokuState {
     var [complete, _valueList] = lockedCandidateStrategy.lockReliably(
       valueList
     );
+
+    this.fill(grid, _valueList);
     if (complete) {
-      this.fill(grid, _valueList);
       return [true, new SudokuState(grid)];
     }
 
@@ -89,8 +91,8 @@ class SudokuState {
     while (valueList$a.length !== 0) {
       var [complete, valueList$b] = hiddenStrategy.hiddenReliably(valueList$a);
 
+      this.fill(grid, valueList$b);
       if (complete) {
-        this.fill(grid, valueList$b);
         return [true, new SudokuState(grid)];
       }
 
@@ -102,8 +104,8 @@ class SudokuState {
         valueList$b
       );
 
+      this.fill(grid, valueList$a);
       if (complete) {
-        this.fill(grid, valueList$a);
         return [true, new SudokuState(grid)];
       }
     }
@@ -298,11 +300,11 @@ class LockedCandidateStrategy {
     }
   }
 
-  static $9x9Fix = new Array(9 * 9).fill(0b111_111_111);
+  // static $9x9Fix = new Array(9 * 9).fill(0b111_111_111);
 
-  static notClaiming = 0;
-  static rowClaiming = 1;
-  static columnClaiming = 2;
+  // static notClaiming = 0;
+  // static rowClaiming = 1;
+  // static columnClaiming = 2;
 
   constructor(blankSet, rowLockedMap, columnLockedMap, blockLockedMap) {
     /**
@@ -604,6 +606,11 @@ class LockedCandidateStrategy {
   clone(blankSet) {}
 }
 
+LockedCandidateStrategy.$9x9Fix = new Array(9 * 9).fill(0b111_111_111);
+LockedCandidateStrategy.notClaiming = 0;
+LockedCandidateStrategy.rowClaiming = 1;
+LockedCandidateStrategy.columnClaiming = 2;
+
 const blankBit = 10;
 const wrongBit = 10;
 const notSingle = 11;
@@ -640,6 +647,7 @@ const $9Zero = new Array(9).fill(0);
 const $9X9Zero = new Array(9 * 9).fill(0);
 const $9Item = new Array(9).fill();
 const $9X9Item = new Array(9 * 9).fill();
+const $9x9Slot = new Array(9 * 9).fill(".");
 
 const index$row = $9X9Zero.slice(),
   index$column = $9X9Zero.slice(),
@@ -658,5 +666,3 @@ for (var r = 0; r !== 9; r++) {
     block$indexList[b].push(index);
   }
 }
-
-//guess的时候再找最少选择的cell
