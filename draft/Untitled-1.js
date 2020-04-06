@@ -76,7 +76,7 @@ class SudokuState {
     }
 
     valueList.push(..._valueList);
-    
+
     var [complete, _valueList] = lockedCandidateStrategy.lockReliably(
       valueList
     );
@@ -116,7 +116,7 @@ class SudokuState {
 
   static fill(grid, valueList) {
     for (const [index, digit] of valueList) {
-      grid[index] = digit;
+      grid[index] = String(digit);
     }
   }
 
@@ -194,10 +194,11 @@ class HiddenStrategy {
       for (const index of this.blankSet) {
         const digit = this.single(index);
         if (digit !== notSingle) {
-          valueList.push([index, digit]);
-          fullValueList.push(pair);
+          const value = [index, digit];
+          valueList.push(value);
+          fullValueList.push(value);
 
-          blankSet.delete(pair[0]);
+          this.blankSet.delete(index);
           if (this.blankSet.size === 0) {
             return [true, fullValueList];
           }
