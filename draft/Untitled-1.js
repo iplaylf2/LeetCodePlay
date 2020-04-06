@@ -12,31 +12,29 @@ var solveSudoku = function (board) {
 
   const snapshotList = [];
   var dilemma = sudokuState;
-  var [available, branch] = dilemma.tryCell();
+  var branch = dilemma.tryCell();
 
   while (true) {
     switch (branch.inference()) {
-      case "complete":
+      case SudokuState.complete:
         branch.fill(board);
         return;
-      case "incomplete":
+      case SudokuState.incomplete:
         snapshotList.push(dilemma);
         dilemma = branch;
 
-        [available, branch] = dilemma.tryCell();
-        if (available) {
-          continue;
+        branch = dilemma.tryCell();
+        continue;
+      case SudokuState.wrong:
+        while (true) {
+          [available, branch] = dilemma.tryDigit();
+          if (available) {
+            break;
+          }
+          dilemma = snapshotList.pop();
         }
-
-        break;
-      case "wrong":
         break;
     }
-
-    do {
-      dilemma = snapshotList.pop();
-      [available, branch] = dilemma.tryDigit();
-    } while (!available);
   }
 };
 
@@ -122,6 +120,10 @@ class SudokuState {
     }
   }
 
+  // static complete = 0;
+  // static incomplete = 1;
+  // static wrong = 2;
+
   constructor(grid, blankSet, hiddenStrategy, lockedCandidateStrategy) {
     /**
      * @type {number[]}
@@ -141,9 +143,47 @@ class SudokuState {
     this.lockedCandidateStrategy = lockedCandidateStrategy;
   }
 
-  inference() {}
+  inference() {
+    var valueList$a = slot;
+    do {
+      var [status, valueList$b] = this.hiddenStrategy.hidden(valueList$a);
 
-  tryCell() {}
+      switch (status) {
+        case SudokuState.complete:
+          SudokuState.fill(this.grid, valueList$b);
+          return status;
+        case SudokuState.incomplete:
+          SudokuState.fill(this.grid, valueList$b);
+          break;
+        case SudokuState.wrong:
+          return status;
+      }
+
+      if (valueList$b.length === 0) {
+        break;
+      }
+
+      var [status, valueList$a] = this.lockedCandidateStrategy.lock(
+        valueList$b
+      );
+
+      switch (status) {
+        case SudokuState.complete:
+          SudokuState.fill(this.grid, valueList$a);
+          return status;
+        case SudokuState.incomplete:
+          SudokuState.fill(this.grid, valueList$a);
+          break;
+        case SudokuState.wrong:
+          return status;
+      }
+    } while (valueList$a.length !== 0);
+
+    return SudokuState.incomplete;
+  }
+
+  tryCell() {
+  }
 
   tryDigit() {}
 
@@ -155,6 +195,10 @@ class SudokuState {
     }
   }
 }
+
+SudokuState.complete = 0;
+SudokuState.incomplete = 1;
+SudokuState.wrong = 2;
 
 class HiddenStrategy {
   static create(blankSet) {
@@ -194,7 +238,9 @@ class HiddenStrategy {
       const valueList = [];
 
       for (const index of this.blankSet) {
-        const digit = this.single(index);
+        const bitmap = this.getMarkBitmap(index);
+        const digit = singleBitmap(bitmap);
+
         if (digit !== notSingle) {
           const value = [index, digit];
           valueList.push(value);
@@ -230,14 +276,15 @@ class HiddenStrategy {
     }
   }
 
-  single(index) {
+  getMarkBitmap(index) {
     const r = index$row[index],
       c = index$column[index],
       b = index$block[index];
 
     const bitmap = this.rowMark[r] | this.columnMark[c] | this.blockMark[b];
     const markBitmap = bitmap ^ 0b111_111_111_0;
-    return singleBitmap(markBitmap);
+
+    return markBitmap;
   }
 
   clone(blankSet) {}
@@ -301,7 +348,6 @@ class LockedCandidateStrategy {
   }
 
   // static $9x9Fix = new Array(9 * 9).fill(0b111_111_111);
-
   // static notClaiming = 0;
   // static rowClaiming = 1;
   // static columnClaiming = 2;
