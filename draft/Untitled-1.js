@@ -805,7 +805,104 @@ class LockedCandidateStrategy {
     return [false, valueList, rowValueList, columnValueList];
   }
 
-  lockByRow(row, digit) {}
+  lockByRow(row, digit) {
+    const valueList = [],
+      rowValueList = [],
+      columnValueList = [];
+
+    for (var i = 0; i !== 9; i++) {
+      const columnLockedIndex = LockedCandidateStrategy.$index(i, digit);
+      if (this.columnLockedMap[columnLockedIndex] === 0) {
+        continue;
+      }
+
+      const rowIndexBitmap =
+        this.columnLockedMap[columnLockedIndex] & ~(1 << row);
+
+      const rowIndex = singleBitmap(rowIndexBitmap);
+
+      switch (rowIndex) {
+        case wrongBit:
+          return [SudokuState.wrong];
+        case notSingle:
+          this.columnLockedMap[columnLockedIndex] = rowIndexBitmap;
+          break;
+        default:
+          this.columnLockedMap[columnLockedIndex] = 0;
+
+          const index = i + rowIndex * 9;
+          valueList.push([index, digit]);
+
+          this.blankSet.delete(index);
+          if (this.blankSet.size === 0) {
+            return [SudokuState.complete, valueList];
+          }
+          break;
+      }
+    }
+
+    const floorOffset = Math.floor(row / 3) * 3;
+    const boxRowOffset = (row % 3) * 3;
+
+    for (var i = 0; i !== 3; i++) {
+      const block = floorOffset + i;
+
+      const blockLockedIndex = LockedCandidateStrategy.$index(block, digit);
+      if (this.blockLockedMap[blockLockedIndex] === 0) {
+        continue;
+      }
+
+      const inBlockIndexBitmap =
+        this.blockLockedMap[blockLockedIndex] & ~(0b111 << boxRowOffset);
+
+      const inBlockIndex = singleBitmap(inBlockIndexBitmap);
+
+      switch (inBlockIndex) {
+        case wrongBit:
+          return [SudokuState.wrong];
+        case notSingle:
+          const [alreadyClaiming] = LockedCandidateStrategy.tryClaiming(
+            this.blockLockedMap[blockLockedIndex]
+          );
+
+          this.blockLockedMap[blockLockedIndex] = inBlockIndexBitmap;
+
+          if (alreadyClaiming === LockedCandidateStrategy.notClaiming) {
+            const [claiming, offset] = LockedCandidateStrategy.tryClaiming(
+              inBlockIndexBitmap
+            );
+            switch (claiming) {
+              case LockedCandidateStrategy.rowClaiming:
+                {
+                  const row = Math.floor(block / 3) * 3 + offset;
+                  rowValueList.push([row, digit]);
+                }
+                break;
+              case LockedCandidateStrategy.columnClaiming:
+                {
+                  const column = (block % 3) * 3 + offset;
+                  columnValueList.push([column, digit]);
+                }
+                break;
+            }
+          }
+          break;
+        default:
+          this.blockLockedMap[blockLockedIndex] = 0;
+
+          const index = block$indexList[block][inBlockIndex];
+          valueList.push([index, digit]);
+
+          this.blankSet.delete(index);
+          if (this.blankSet.size === 0) {
+            return [SudokuState.complete, valueList];
+          }
+          break;
+      }
+    }
+
+    return [SudokuState.incomplete, valueList, rowValueList, columnValueList];
+  }
 
   lockByColumnReliably(column, digit) {
     const valueList = [],
