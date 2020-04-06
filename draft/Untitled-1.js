@@ -71,8 +71,6 @@ class SudokuState {
     ];
   }
 
-  static hiddenReliably(validator, blankSet, valueSource) {}
-
   constructor(grid, blankSet, validator, lockedCandidateStrategy) {
     /**
      * @type {number[]}
@@ -142,10 +140,6 @@ class HiddenStrategy {
     const fullValueList = [];
 
     while (true) {
-      if (this.blankSet.size === 0) {
-        break;
-      }
-
       this.markAll(valueSource);
 
       const valueList = [];
@@ -154,6 +148,12 @@ class HiddenStrategy {
         const digit = this.single(index);
         if (digit !== notSingle) {
           valueList.push([index, digit]);
+          fullValueList.push(pair);
+          
+          blankSet.delete(pair[0]);
+          if (this.blankSet.size === 0) {
+            return [true, fullValueList];
+          }
         }
       }
 
@@ -161,15 +161,10 @@ class HiddenStrategy {
         break;
       }
 
-      for (const pair of valueList) {
-        blankSet.delete(pair[0]);
-        fullValueList.push(pair);
-      }
-
       valueSource = valueList;
     }
 
-    return fullValueList;
+    return [false, fullValueList];
   }
 
   markAll(valueList) {
@@ -191,7 +186,7 @@ class HiddenStrategy {
       b = index$block[index];
 
     const bitmap = this.rowMark[r] | this.columnMark[c] | this.blockMark[b];
-    const markBitmap = bitmap ^ 0b1111_1111_10;
+    const markBitmap = bitmap ^ 0b111_111_111_0;
     return singleBitmap(markBitmap);
   }
 }
@@ -249,7 +244,7 @@ class LockedCandidateStrategy {
       case 0b000_001_001 << 2:
         return [this.columnClaiming, 2];
       default:
-        return [this.notClaiming, 0];
+        return [this.notClaiming];
     }
   }
 
@@ -285,10 +280,6 @@ class LockedCandidateStrategy {
     const fullValueList = [];
 
     while (true) {
-      if (this.blankSet.size === 0) {
-        break;
-      }
-
       this.fixAll(valueSource);
 
       const valueList = [],
@@ -300,31 +291,50 @@ class LockedCandidateStrategy {
           c = index$column[index];
 
         var [
+          complete,
           _valueList,
           _rowValueList,
           _columnValueList,
         ] = this.lockByRowReliably(r, digit);
+
+        if (complete) {
+          fullValueList.push(...valueList, ..._valueList);
+          return [true, fullValueList];
+        }
 
         valueList.push(..._valueList);
         rowValueList.push(..._rowValueList);
         columnValueList.push(..._columnValueList);
 
         var [
+          complete,
           _valueList,
           _rowValueList,
           _columnValueList,
         ] = this.lockByColumnReliably(c, digit);
+
+        if (complete) {
+          fullValueList.push(...valueList, ..._valueList);
+          return [true, fullValueList];
+        }
+
         valueList.push(..._valueList);
         rowValueList.push(..._rowValueList);
         columnValueList.push(..._columnValueList);
       }
 
       for (const [row, digit] of rowValueSource) {
-        var [
+        const [
+          complete,
           _valueList,
           _rowValueList,
           _columnValueList,
         ] = this.lockByRowReliably(row, digit);
+
+        if (complete) {
+          fullValueList.push(...valueList, ..._valueList);
+          return [true, fullValueList];
+        }
 
         valueList.push(..._valueList);
         rowValueList.push(..._rowValueList);
@@ -332,11 +342,18 @@ class LockedCandidateStrategy {
       }
 
       for (const [column, digit] of columnValueSource) {
-        var [
+        const [
+          complete,
           _valueList,
           _rowValueList,
           _columnValueList,
         ] = this.lockByColumnReliably(column, digit);
+
+        if (complete) {
+          fullValueList.push(...valueList, ..._valueList);
+          return [true, fullValueList];
+        }
+
         valueList.push(..._valueList);
         rowValueList.push(..._rowValueList);
         columnValueList.push(..._columnValueList);
@@ -350,17 +367,14 @@ class LockedCandidateStrategy {
         break;
       }
 
-      for (const pair of valueList) {
-        this.blankSet.delete(pair[0]);
-        fullValueList.push(pair);
-      }
+      fullValueList.push(...valueList);
 
       valueSource = valueList;
       rowValueSource = rowValueList;
       columnValueSource = columnValueList;
     }
 
-    return fullValueList;
+    return [false, fullValueList];
   }
 
   fixAll(valueList) {
@@ -391,8 +405,12 @@ class LockedCandidateStrategy {
         this.columnLockedMap[columnLockedIndex] = 0;
 
         const index = i + rowIndex * 9;
-        this.blankSet.delete(index);
         valueList.push([index, digit]);
+
+        this.blankSet.delete(index);
+        if (this.blankSet.size === 0) {
+          return [true, valueList];
+        }
       } else {
         this.columnLockedMap[columnLockedIndex] = rowIndexBitmap;
       }
@@ -414,8 +432,12 @@ class LockedCandidateStrategy {
         this.blockLockedMap[blockLockedIndex] = 0;
 
         const index = block$indexList[block][inBlockIndex];
-        this.blankSet.delete(index);
         valueList.push([index, digit]);
+
+        this.blankSet.delete(index);
+        if (this.blankSet.size === 0) {
+          return [true, valueList];
+        }
       } else {
         const [alreadyClaiming] = LockedCandidateStrategy.tryClaiming(
           this.blockLockedMap[blockLockedIndex]
@@ -445,7 +467,7 @@ class LockedCandidateStrategy {
       }
     }
 
-    return [valueList, rowValueList, columnValueList];
+    return [false, valueList, rowValueList, columnValueList];
   }
 
   lockByColumnReliably(column, digit) {
@@ -464,8 +486,12 @@ class LockedCandidateStrategy {
         this.rowLockedMap[rowLockedIndex] = 0;
 
         const index = i * 9 + columnIndex;
-        this.blankSet.delete(index);
         valueList.push([index, digit]);
+
+        this.blankSet.delete(index);
+        if (this.blankSet.size === 0) {
+          return [true, valueList];
+        }
       } else {
         this.rowLockedMap[rowLockedIndex] = columnIndexBitmap;
       }
@@ -487,8 +513,12 @@ class LockedCandidateStrategy {
         this.blockLockedMap[blockLockedIndex] = 0;
 
         const index = block$indexList[block][inBlockIndex];
-        this.blankSet.delete(index);
         valueList.push([index, digit]);
+
+        this.blankSet.delete(index);
+        if (this.blankSet.size === 0) {
+          return [true, valueList];
+        }
       } else {
         const [alreadyClaiming] = LockedCandidateStrategy.tryClaiming(
           this.blockLockedMap[blockLockedIndex]
@@ -518,7 +548,7 @@ class LockedCandidateStrategy {
       }
     }
 
-    return [valueList, rowValueList, columnValueList];
+    return [false, valueList, rowValueList, columnValueList];
   }
 
   clone() {}
