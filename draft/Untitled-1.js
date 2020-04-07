@@ -734,15 +734,15 @@ class LockedCandidateStrategy {
       rowValueList = [],
       columnValueList = [];
 
-    for (var i = 0; i !== 9; i++) {
-      const columnLockedIndex = LockedCandidateStrategy.$index(i, digit);
+    for (var c = 0; c !== 9; c++) {
+      const columnLockedIndex = LockedCandidateStrategy.$index(c, digit);
       const rowIndexBitmap =
         this.columnLockedMap[columnLockedIndex] & ~(1 << row);
 
       const rowIndex = singleBitmap(rowIndexBitmap);
 
       if (rowIndex !== notSingle && rowIndex !== blankBit) {
-        const index = i + rowIndex * 9;
+        const index = rowIndex * 9 + c;
         valueList.push([index, digit]);
 
         this.blankSet.delete(index);
@@ -759,17 +759,21 @@ class LockedCandidateStrategy {
     const floorOffset = Math.floor(row / 3) * 3;
     const boxRowOffset = (row % 3) * 3;
 
-    for (var i = 0; i !== 3; i++) {
-      const block = floorOffset + i;
+    for (var t = 0; t !== 3; t++) {
+      const b = floorOffset + t;
 
-      const blockLockedIndex = LockedCandidateStrategy.$index(block, digit);
+      if (b === block) {
+        continue;
+      }
+
+      const blockLockedIndex = LockedCandidateStrategy.$index(b, digit);
       const inBlockIndexBitmap =
         this.blockLockedMap[blockLockedIndex] & ~(0b111 << boxRowOffset);
 
       const inBlockIndex = singleBitmap(inBlockIndexBitmap);
 
       if (inBlockIndex !== notSingle && inBlockIndex !== blankBit) {
-        const index = block$indexList[block][inBlockIndex];
+        const index = block$indexList[b][inBlockIndex];
         valueList.push([index, digit]);
 
         this.blankSet.delete(index);
@@ -792,14 +796,14 @@ class LockedCandidateStrategy {
           switch (claiming) {
             case LockedCandidateStrategy.rowClaiming:
               {
-                const row = Math.floor(block / 3) * 3 + offset;
-                rowValueList.push([row, digit]);
+                const row = Math.floor(b / 3) * 3 + offset;
+                rowValueList.push([row, b, digit]);
               }
               break;
             case LockedCandidateStrategy.columnClaiming:
               {
-                const column = (block % 3) * 3 + offset;
-                columnValueList.push([column, digit]);
+                const column = (b % 3) * 3 + offset;
+                columnValueList.push([column, b, digit]);
               }
               break;
           }
@@ -815,8 +819,8 @@ class LockedCandidateStrategy {
       rowValueList = [],
       columnValueList = [];
 
-    for (var i = 0; i !== 9; i++) {
-      const columnLockedIndex = LockedCandidateStrategy.$index(i, digit);
+    for (var c = 0; c !== 9; c++) {
+      const columnLockedIndex = LockedCandidateStrategy.$index(c, digit);
       if (this.columnLockedMap[columnLockedIndex] === 0) {
         continue;
       }
@@ -833,7 +837,7 @@ class LockedCandidateStrategy {
           this.columnLockedMap[columnLockedIndex] = rowIndexBitmap;
           break;
         default:
-          const index = i + rowIndex * 9;
+          const index = rowIndex * 9 + c;
           valueList.push([index, digit]);
 
           this.blankSet.delete(index);
@@ -849,10 +853,14 @@ class LockedCandidateStrategy {
     const floorOffset = Math.floor(row / 3) * 3;
     const boxRowOffset = (row % 3) * 3;
 
-    for (var i = 0; i !== 3; i++) {
-      const block = floorOffset + i;
+    for (var t = 0; t !== 3; t++) {
+      const b = floorOffset + t;
 
-      const blockLockedIndex = LockedCandidateStrategy.$index(block, digit);
+      if (b === block) {
+        continue;
+      }
+
+      const blockLockedIndex = LockedCandidateStrategy.$index(b, digit);
       if (this.blockLockedMap[blockLockedIndex] === 0) {
         continue;
       }
@@ -879,21 +887,21 @@ class LockedCandidateStrategy {
             switch (claiming) {
               case LockedCandidateStrategy.rowClaiming:
                 {
-                  const row = Math.floor(block / 3) * 3 + offset;
-                  rowValueList.push([row, digit]);
+                  const row = Math.floor(b / 3) * 3 + offset;
+                  rowValueList.push([row, b, digit]);
                 }
                 break;
               case LockedCandidateStrategy.columnClaiming:
                 {
-                  const column = (block % 3) * 3 + offset;
-                  columnValueList.push([column, digit]);
+                  const column = (b % 3) * 3 + offset;
+                  columnValueList.push([column, b, digit]);
                 }
                 break;
             }
           }
           break;
         default:
-          const index = block$indexList[block][inBlockIndex];
+          const index = block$indexList[b][inBlockIndex];
           valueList.push([index, digit]);
 
           this.blankSet.delete(index);
@@ -914,15 +922,15 @@ class LockedCandidateStrategy {
       rowValueList = [],
       columnValueList = [];
 
-    for (var i = 0; i !== 9; i++) {
-      const rowLockedIndex = LockedCandidateStrategy.$index(i, digit);
+    for (var r = 0; r !== 9; r++) {
+      const rowLockedIndex = LockedCandidateStrategy.$index(r, digit);
       const columnIndexBitmap =
         this.rowLockedMap[rowLockedIndex] & ~(1 << column);
 
       const columnIndex = singleBitmap(columnIndexBitmap);
 
       if (columnIndex !== notSingle && columnIndex !== blankBit) {
-        const index = i * 9 + columnIndex;
+        const index = r * 9 + columnIndex;
         valueList.push([index, digit]);
 
         this.blankSet.delete(index);
@@ -939,17 +947,21 @@ class LockedCandidateStrategy {
     const tower = Math.floor(column / 3);
     const boxColumn = column % 3;
 
-    for (var i = 0; i !== 3; i++) {
-      const block = tower + i * 3;
+    for (var f = 0; f !== 3; f++) {
+      const b = f * 3 + tower;
 
-      const blockLockedIndex = LockedCandidateStrategy.$index(block, digit);
+      if (b === block) {
+        continue;
+      }
+
+      const blockLockedIndex = LockedCandidateStrategy.$index(b, digit);
       const inBlockIndexBitmap =
         this.blockLockedMap[blockLockedIndex] & ~(0b001_001_001 << boxColumn);
 
       const inBlockIndex = singleBitmap(inBlockIndexBitmap);
 
       if (inBlockIndex !== notSingle && inBlockIndex !== blankBit) {
-        const index = block$indexList[block][inBlockIndex];
+        const index = block$indexList[b][inBlockIndex];
         valueList.push([index, digit]);
 
         this.blankSet.delete(index);
@@ -972,14 +984,14 @@ class LockedCandidateStrategy {
           switch (claiming) {
             case LockedCandidateStrategy.rowClaiming:
               {
-                const row = Math.floor(block / 3) * 3 + offset;
-                rowValueList.push([row, digit]);
+                const row = Math.floor(b / 3) * 3 + offset;
+                rowValueList.push([row, b, digit]);
               }
               break;
             case LockedCandidateStrategy.columnClaiming:
               {
-                const column = (block % 3) * 3 + offset;
-                columnValueList.push([column, digit]);
+                const column = (b % 3) * 3 + offset;
+                columnValueList.push([column, b, digit]);
               }
               break;
           }
@@ -995,8 +1007,8 @@ class LockedCandidateStrategy {
       rowValueList = [],
       columnValueList = [];
 
-    for (var i = 0; i !== 9; i++) {
-      const rowLockedIndex = LockedCandidateStrategy.$index(i, digit);
+    for (var r = 0; r !== 9; r++) {
+      const rowLockedIndex = LockedCandidateStrategy.$index(r, digit);
       if (this.rowLockedMap[rowLockedIndex] === 0) {
         continue;
       }
@@ -1013,7 +1025,7 @@ class LockedCandidateStrategy {
           this.rowLockedMap[rowLockedIndex] = columnIndexBitmap;
           break;
         default:
-          const index = i * 9 + columnIndex;
+          const index = r * 9 + columnIndex;
           valueList.push([index, digit]);
 
           this.blankSet.delete(index);
@@ -1029,10 +1041,14 @@ class LockedCandidateStrategy {
     const tower = Math.floor(column / 3);
     const boxColumn = column % 3;
 
-    for (var i = 0; i !== 3; i++) {
-      const block = tower + i * 3;
+    for (var f = 0; f !== 3; f++) {
+      const b = f * 3 + tower;
 
-      const blockLockedIndex = LockedCandidateStrategy.$index(block, digit);
+      if (b === block) {
+        continue;
+      }
+
+      const blockLockedIndex = LockedCandidateStrategy.$index(b, digit);
       if (this.blockLockedMap[blockLockedIndex] === 0) {
         continue;
       }
@@ -1059,21 +1075,21 @@ class LockedCandidateStrategy {
             switch (claiming) {
               case LockedCandidateStrategy.rowClaiming:
                 {
-                  const row = Math.floor(block / 3) * 3 + offset;
-                  rowValueList.push([row, digit]);
+                  const row = Math.floor(b / 3) * 3 + offset;
+                  rowValueList.push([row, b, digit]);
                 }
                 break;
               case LockedCandidateStrategy.columnClaiming:
                 {
-                  const column = (block % 3) * 3 + offset;
-                  columnValueList.push([column, digit]);
+                  const column = (b % 3) * 3 + offset;
+                  columnValueList.push([column, b, digit]);
                 }
                 break;
             }
           }
           break;
         default:
-          const index = block$indexList[block][inBlockIndex];
+          const index = block$indexList[b][inBlockIndex];
           valueList.push([index, digit]);
 
           this.blankSet.delete(index);
