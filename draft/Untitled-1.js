@@ -611,7 +611,7 @@ class LockedCandidateStrategy {
           _valueList,
           _rowValueList,
           _columnValueList,
-        ] = this.lockByRowReliably(r, digit);
+        ] = this.lockByRow(r, digit);
 
         switch (status) {
           case SudokuState.complete:
@@ -632,7 +632,7 @@ class LockedCandidateStrategy {
           _valueList,
           _rowValueList,
           _columnValueList,
-        ] = this.lockByColumnReliably(c, digit);
+        ] = this.lockByColumn(c, digit);
 
         switch (status) {
           case SudokuState.complete:
@@ -655,7 +655,7 @@ class LockedCandidateStrategy {
           _valueList,
           _rowValueList,
           _columnValueList,
-        ] = this.lockByRowReliably(row, digit);
+        ] = this.lockByRow(row, digit);
 
         switch (status) {
           case SudokuState.complete:
@@ -678,7 +678,7 @@ class LockedCandidateStrategy {
           _valueList,
           _rowValueList,
           _columnValueList,
-        ] = this.lockByColumnReliably(column, digit);
+        ] = this.lockByColumn(column, digit);
 
         switch (status) {
           case SudokuState.complete:
@@ -1104,8 +1104,8 @@ LockedCandidateStrategy.notClaiming = 0;
 LockedCandidateStrategy.rowClaiming = 1;
 LockedCandidateStrategy.columnClaiming = 2;
 
-const blankBit = 0;
-const wrongBit = 0;
+const blankBit = 10;
+const wrongBit = 10;
 const notSingle = 11;
 const singleBitmap = function (bitmap) {
   switch (bitmap) {
