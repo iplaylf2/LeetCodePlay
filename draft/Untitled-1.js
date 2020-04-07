@@ -507,7 +507,7 @@ class LockedCandidateStrategy {
           _valueList,
           _rowValueList,
           _columnValueList,
-        ] = this.lockByRowReliably(r, digit);
+        ] = this.lockByRowReliably(r, outDigit, digit);
 
         if (complete) {
           fullValueList.push(...valueList, ..._valueList);
@@ -523,7 +523,7 @@ class LockedCandidateStrategy {
           _valueList,
           _rowValueList,
           _columnValueList,
-        ] = this.lockByColumnReliably(c, digit);
+        ] = this.lockByColumnReliably(c, outDigit, digit);
 
         if (complete) {
           fullValueList.push(...valueList, ..._valueList);
@@ -535,13 +535,13 @@ class LockedCandidateStrategy {
         columnValueList.push(..._columnValueList);
       }
 
-      for (const [row, digit] of rowValueSource) {
+      for (const [row, block, digit] of rowValueSource) {
         const [
           complete,
           _valueList,
           _rowValueList,
           _columnValueList,
-        ] = this.lockByRowReliably(row, digit);
+        ] = this.lockByRowReliably(row, block, digit);
 
         if (complete) {
           fullValueList.push(...valueList, ..._valueList);
@@ -553,13 +553,13 @@ class LockedCandidateStrategy {
         columnValueList.push(..._columnValueList);
       }
 
-      for (const [column, digit] of columnValueSource) {
+      for (const [column, block, digit] of columnValueSource) {
         const [
           complete,
           _valueList,
           _rowValueList,
           _columnValueList,
-        ] = this.lockByColumnReliably(column, digit);
+        ] = this.lockByColumnReliably(column, block, digit);
 
         if (complete) {
           fullValueList.push(...valueList, ..._valueList);
@@ -611,7 +611,7 @@ class LockedCandidateStrategy {
           _valueList,
           _rowValueList,
           _columnValueList,
-        ] = this.lockByRow(r, digit);
+        ] = this.lockByRow(r, outDigit, digit);
 
         switch (status) {
           case SudokuState.complete:
@@ -632,7 +632,7 @@ class LockedCandidateStrategy {
           _valueList,
           _rowValueList,
           _columnValueList,
-        ] = this.lockByColumn(c, digit);
+        ] = this.lockByColumn(c, outDigit, digit);
 
         switch (status) {
           case SudokuState.complete:
@@ -649,13 +649,13 @@ class LockedCandidateStrategy {
         columnValueList.push(..._columnValueList);
       }
 
-      for (const [row, digit] of rowValueSource) {
+      for (const [row, block, digit] of rowValueSource) {
         const [
           status,
           _valueList,
           _rowValueList,
           _columnValueList,
-        ] = this.lockByRow(row, digit);
+        ] = this.lockByRow(row, block, digit);
 
         switch (status) {
           case SudokuState.complete:
@@ -672,13 +672,13 @@ class LockedCandidateStrategy {
         columnValueList.push(..._columnValueList);
       }
 
-      for (const [column, digit] of columnValueSource) {
+      for (const [column, block, digit] of columnValueSource) {
         const [
           status,
           _valueList,
           _rowValueList,
           _columnValueList,
-        ] = this.lockByColumn(column, digit);
+        ] = this.lockByColumn(column, block, digit);
 
         switch (status) {
           case SudokuState.complete:
@@ -729,7 +729,7 @@ class LockedCandidateStrategy {
     this.blockLockedMap[LockedCandidateStrategy.$index(b, digit)] = 0;
   }
 
-  lockByRowReliably(row, digit) {
+  lockByRowReliably(row, block, digit) {
     const valueList = [],
       rowValueList = [],
       columnValueList = [];
@@ -810,7 +810,7 @@ class LockedCandidateStrategy {
     return [false, valueList, rowValueList, columnValueList];
   }
 
-  lockByRow(row, digit) {
+  lockByRow(row, block, digit) {
     const valueList = [],
       rowValueList = [],
       columnValueList = [];
@@ -909,7 +909,7 @@ class LockedCandidateStrategy {
     return [SudokuState.incomplete, valueList, rowValueList, columnValueList];
   }
 
-  lockByColumnReliably(column, digit) {
+  lockByColumnReliably(column, block, digit) {
     const valueList = [],
       rowValueList = [],
       columnValueList = [];
@@ -990,7 +990,7 @@ class LockedCandidateStrategy {
     return [false, valueList, rowValueList, columnValueList];
   }
 
-  lockByColumn(column, digit) {
+  lockByColumn(column, block, digit) {
     const valueList = [],
       rowValueList = [],
       columnValueList = [];
@@ -1103,6 +1103,8 @@ LockedCandidateStrategy.$9x9Fix = new Array(9 * 9).fill(0b111_111_111);
 LockedCandidateStrategy.notClaiming = 0;
 LockedCandidateStrategy.rowClaiming = 1;
 LockedCandidateStrategy.columnClaiming = 2;
+
+const outDigit = 10;
 
 const blankBit = 10;
 const wrongBit = 10;
