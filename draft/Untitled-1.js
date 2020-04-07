@@ -293,12 +293,12 @@ class HiddenStrategy {
   }
 
   hiddenReliably(valueSource) {
-    const fullValueList = [];
+    const valueList = [];
 
     this.markAll(valueSource);
 
     while (true) {
-      const valueList = [];
+      var noChange = true;
 
       for (const index of this.blankSet) {
         const bitmap = this.getMarkBitmap(index);
@@ -306,35 +306,33 @@ class HiddenStrategy {
 
         if (digit !== notSingle) {
           const value = [index, digit];
-          fullValueList.push(value);
+          valueList.push(value);
 
           this.blankSet.delete(index);
           if (this.blankSet.size === 0) {
-            return [true, fullValueList];
+            return [true, valueList];
           }
 
-          valueList.push(value);
+          noChange = false;
           this.mark(index, digit);
         }
       }
 
-      if (valueList.length === 0) {
+      if (noChange) {
         break;
       }
-
-      valueSource = valueList;
     }
 
-    return [false, fullValueList];
+    return [false, valueList];
   }
 
   hidden(valueSource) {
-    const fullValueList = [];
+    const valueList = [];
 
     this.markAll(valueSource);
 
     while (true) {
-      const valueList = [];
+      var noChange = true;
 
       for (const index of this.blankSet) {
         const bitmap = this.getMarkBitmap(index);
@@ -347,27 +345,25 @@ class HiddenStrategy {
             break;
           default:
             const value = [index, digit];
-            fullValueList.push(value);
+            valueList.push(value);
 
             this.blankSet.delete(index);
             if (this.blankSet.size === 0) {
-              return [SudokuState.complete, fullValueList];
+              return [SudokuState.complete, valueList];
             }
 
-            valueList.push(value);
+            noChange = false;
             this.mark(index, digit);
             break;
         }
       }
 
-      if (valueList.length === 0) {
+      if (noChange) {
         break;
       }
-
-      valueSource = valueList;
     }
 
-    return [SudokuState.incomplete, fullValueList];
+    return [SudokuState.incomplete, valueList];
   }
 
   markAll(valueList) {
