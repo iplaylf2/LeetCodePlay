@@ -209,7 +209,7 @@ class SudokuState {
 
     const newState = this.clone();
     newState.blankSet.delete(index);
-    newState.grid[index] = digit;
+    newState.grid[index] = String(digit);
 
     return [newState, index, digit];
   }
@@ -235,7 +235,7 @@ class SudokuState {
 
     const newState = this.clone();
     newState.blankSet.delete(index);
-    newState.grid[index] = digit;
+    newState.grid[index] = String(digit);
 
     return [true, newState, index, digit];
   }
@@ -249,11 +249,12 @@ class SudokuState {
   }
 
   clone() {
+    const newBlankSet = new Set(this.blankSet);
     return new SudokuState(
       this.grid.slice(),
-      new Set(this.blankSet),
-      this.hiddenStrategy.clone(this.blankSet),
-      this.lockedCandidateStrategy.clone(this.blankSet)
+      newBlankSet,
+      this.hiddenStrategy.clone(newBlankSet),
+      this.lockedCandidateStrategy.clone(newBlankSet)
     );
   }
 }
@@ -294,9 +295,9 @@ class HiddenStrategy {
   hiddenReliably(valueSource) {
     const fullValueList = [];
 
-    while (true) {
-      this.markAll(valueSource);
+    this.markAll(valueSource);
 
+    while (true) {
       const valueList = [];
 
       for (const index of this.blankSet) {
@@ -305,13 +306,15 @@ class HiddenStrategy {
 
         if (digit !== notSingle) {
           const value = [index, digit];
-          valueList.push(value);
           fullValueList.push(value);
 
           this.blankSet.delete(index);
           if (this.blankSet.size === 0) {
             return [true, fullValueList];
           }
+
+          valueList.push(value);
+          this.mark(index, digit);
         }
       }
 
@@ -328,9 +331,9 @@ class HiddenStrategy {
   hidden(valueSource) {
     const fullValueList = [];
 
-    while (true) {
-      this.markAll(valueSource);
+    this.markAll(valueSource);
 
+    while (true) {
       const valueList = [];
 
       for (const index of this.blankSet) {
@@ -344,13 +347,15 @@ class HiddenStrategy {
             break;
           default:
             const value = [index, digit];
-            valueList.push(value);
             fullValueList.push(value);
 
             this.blankSet.delete(index);
             if (this.blankSet.size === 0) {
               return [SudokuState.complete, fullValueList];
             }
+
+            valueList.push(value);
+            this.mark(index, digit);
             break;
         }
       }
@@ -488,11 +493,11 @@ class LockedCandidateStrategy {
     var rowValueSource = [],
       columnValueSource = [];
 
+    this.fixAll(valueSource);
+
     const fullValueList = [];
 
     while (true) {
-      this.fixAll(valueSource);
-
       const valueList = [],
         rowValueList = [],
         columnValueList = [];
@@ -592,11 +597,11 @@ class LockedCandidateStrategy {
     var rowValueSource = [],
       columnValueSource = [];
 
+    this.fixAll(valueSource);
+
     const fullValueList = [];
 
     while (true) {
-      this.fixAll(valueSource);
-
       const valueList = [],
         rowValueList = [],
         columnValueList = [];
@@ -714,14 +719,18 @@ class LockedCandidateStrategy {
 
   fixAll(valueList) {
     for (const [index, digit] of valueList) {
-      const r = index$row[index],
-        c = index$column[index],
-        b = index$block[index];
-
-      this.rowLockedMap[LockedCandidateStrategy.$index(r, digit)] = 0;
-      this.columnLockedMap[LockedCandidateStrategy.$index(c, digit)] = 0;
-      this.blockLockedMap[LockedCandidateStrategy.$index(b, digit)] = 0;
+      this.fix(index, digit);
     }
+  }
+
+  fix(index, digit) {
+    const r = index$row[index],
+      c = index$column[index],
+      b = index$block[index];
+
+    this.rowLockedMap[LockedCandidateStrategy.$index(r, digit)] = 0;
+    this.columnLockedMap[LockedCandidateStrategy.$index(c, digit)] = 0;
+    this.blockLockedMap[LockedCandidateStrategy.$index(b, digit)] = 0;
   }
 
   lockByRowReliably(row, digit) {
@@ -737,8 +746,6 @@ class LockedCandidateStrategy {
       const rowIndex = singleBitmap(rowIndexBitmap);
 
       if (rowIndex !== notSingle && rowIndex !== blankBit) {
-        this.columnLockedMap[columnLockedIndex] = 0;
-
         const index = i + rowIndex * 9;
         valueList.push([index, digit]);
 
@@ -746,6 +753,8 @@ class LockedCandidateStrategy {
         if (this.blankSet.size === 0) {
           return [true, valueList];
         }
+
+        this.fix(index, digit);
       } else {
         this.columnLockedMap[columnLockedIndex] = rowIndexBitmap;
       }
@@ -764,8 +773,6 @@ class LockedCandidateStrategy {
       const inBlockIndex = singleBitmap(inBlockIndexBitmap);
 
       if (inBlockIndex !== notSingle && inBlockIndex !== blankBit) {
-        this.blockLockedMap[blockLockedIndex] = 0;
-
         const index = block$indexList[block][inBlockIndex];
         valueList.push([index, digit]);
 
@@ -773,6 +780,8 @@ class LockedCandidateStrategy {
         if (this.blankSet.size === 0) {
           return [true, valueList];
         }
+
+        this.fix(index, digit);
       } else {
         const [alreadyClaiming] = LockedCandidateStrategy.tryClaiming(
           this.blockLockedMap[blockLockedIndex]
@@ -828,8 +837,6 @@ class LockedCandidateStrategy {
           this.columnLockedMap[columnLockedIndex] = rowIndexBitmap;
           break;
         default:
-          this.columnLockedMap[columnLockedIndex] = 0;
-
           const index = i + rowIndex * 9;
           valueList.push([index, digit]);
 
@@ -837,6 +844,8 @@ class LockedCandidateStrategy {
           if (this.blankSet.size === 0) {
             return [SudokuState.complete, valueList];
           }
+
+          this.fix(index, digit);
           break;
       }
     }
@@ -888,8 +897,6 @@ class LockedCandidateStrategy {
           }
           break;
         default:
-          this.blockLockedMap[blockLockedIndex] = 0;
-
           const index = block$indexList[block][inBlockIndex];
           valueList.push([index, digit]);
 
@@ -897,6 +904,8 @@ class LockedCandidateStrategy {
           if (this.blankSet.size === 0) {
             return [SudokuState.complete, valueList];
           }
+
+          this.fix(index, digit);
           break;
       }
     }
@@ -917,8 +926,6 @@ class LockedCandidateStrategy {
       const columnIndex = singleBitmap(columnIndexBitmap);
 
       if (columnIndex !== notSingle && columnIndex !== blankBit) {
-        this.rowLockedMap[rowLockedIndex] = 0;
-
         const index = i * 9 + columnIndex;
         valueList.push([index, digit]);
 
@@ -926,6 +933,8 @@ class LockedCandidateStrategy {
         if (this.blankSet.size === 0) {
           return [true, valueList];
         }
+
+        this.fix(index, digit);
       } else {
         this.rowLockedMap[rowLockedIndex] = columnIndexBitmap;
       }
@@ -944,8 +953,6 @@ class LockedCandidateStrategy {
       const inBlockIndex = singleBitmap(inBlockIndexBitmap);
 
       if (inBlockIndex !== notSingle && inBlockIndex !== blankBit) {
-        this.blockLockedMap[blockLockedIndex] = 0;
-
         const index = block$indexList[block][inBlockIndex];
         valueList.push([index, digit]);
 
@@ -953,6 +960,8 @@ class LockedCandidateStrategy {
         if (this.blankSet.size === 0) {
           return [true, valueList];
         }
+
+        this.fix(index, digit);
       } else {
         const [alreadyClaiming] = LockedCandidateStrategy.tryClaiming(
           this.blockLockedMap[blockLockedIndex]
@@ -985,7 +994,104 @@ class LockedCandidateStrategy {
     return [false, valueList, rowValueList, columnValueList];
   }
 
-  lockByColumn(column, digit) {}
+  lockByColumn(column, digit) {
+    const valueList = [],
+      rowValueList = [],
+      columnValueList = [];
+
+    for (var i = 0; i !== 9; i++) {
+      const rowLockedIndex = LockedCandidateStrategy.$index(i, digit);
+      if (this.rowLockedMap[rowLockedIndex] === 0) {
+        continue;
+      }
+
+      const columnIndexBitmap =
+        this.rowLockedMap[rowLockedIndex] & ~(1 << column);
+
+      const columnIndex = singleBitmap(columnIndexBitmap);
+
+      switch (columnIndex) {
+        case wrongBit:
+          return [SudokuState.wrong];
+        case notSingle:
+          this.rowLockedMap[rowLockedIndex] = columnIndexBitmap;
+          break;
+        default:
+          const index = i * 9 + columnIndex;
+          valueList.push([index, digit]);
+
+          this.blankSet.delete(index);
+          if (this.blankSet.size === 0) {
+            return [SudokuState.complete, valueList];
+          }
+
+          this.fix(index, digit);
+          break;
+      }
+    }
+
+    const tower = Math.floor(column / 3);
+    const boxColumn = column % 3;
+
+    for (var i = 0; i !== 3; i++) {
+      const block = tower + i * 3;
+
+      const blockLockedIndex = LockedCandidateStrategy.$index(block, digit);
+      if (this.blockLockedMap[blockLockedIndex] === 0) {
+        continue;
+      }
+
+      const inBlockIndexBitmap =
+        this.blockLockedMap[blockLockedIndex] & ~(0b001_001_001 << boxColumn);
+
+      const inBlockIndex = singleBitmap(inBlockIndexBitmap);
+
+      switch (inBlockIndex) {
+        case wrongBit:
+          return [SudokuState.wrong];
+        case notSingle:
+          const [alreadyClaiming] = LockedCandidateStrategy.tryClaiming(
+            this.blockLockedMap[blockLockedIndex]
+          );
+
+          this.blockLockedMap[blockLockedIndex] = inBlockIndexBitmap;
+
+          if (alreadyClaiming === LockedCandidateStrategy.notClaiming) {
+            const [claiming, offset] = LockedCandidateStrategy.tryClaiming(
+              inBlockIndexBitmap
+            );
+            switch (claiming) {
+              case LockedCandidateStrategy.rowClaiming:
+                {
+                  const row = Math.floor(block / 3) * 3 + offset;
+                  rowValueList.push([row, digit]);
+                }
+                break;
+              case LockedCandidateStrategy.columnClaiming:
+                {
+                  const column = (block % 3) * 3 + offset;
+                  columnValueList.push([column, digit]);
+                }
+                break;
+            }
+          }
+          break;
+        default:
+          const index = block$indexList[block][inBlockIndex];
+          valueList.push([index, digit]);
+
+          this.blankSet.delete(index);
+          if (this.blankSet.size === 0) {
+            return [SudokuState.complete, valueList];
+          }
+
+          this.fix(index, digit);
+          break;
+      }
+    }
+
+    return [SudokuState.incomplete, valueList, rowValueList, columnValueList];
+  }
 
   clone(blankSet) {
     return new LockedCandidateStrategy(
