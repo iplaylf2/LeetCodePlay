@@ -1156,15 +1156,13 @@ const singleBitmap = function (bitmap) {
 
 const $9Zero = new Array(9).fill(0);
 const $9X9Zero = new Array(9 * 9).fill(0);
-const $9Item = new Array(9).fill();
-const $9X9Item = new Array(9 * 9).fill();
 const $9x9Slot = new Array(9 * 9).fill(".");
 
 const index$row = $9X9Zero.slice(),
   index$column = $9X9Zero.slice(),
   index$block = $9X9Zero.slice();
 
-const block$indexList = $9Item.map(() => []);
+const block$indexList = new Array(9).fill().map(() => []);
 
 for (var r = 0; r !== 9; r++) {
   for (var c = 0; c !== 9; c++) {
