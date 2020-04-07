@@ -39,7 +39,7 @@
 |[search insert position](https://leetcode-cn.com/problems/search-insert-position/)|[code](https://github.com/Iplaylf2/LeetCodePlay/tree/master/code/search-insert-position)||
 |[string to integer atoi](https://leetcode-cn.com/problems/string-to-integer-atoi/)|[code](https://github.com/Iplaylf2/LeetCodePlay/tree/master/code/string-to-integer-atoi)|应使用其他语言。|
 |[substring with concatenation of all words](https://leetcode-cn.com/problems/substring-with-concatenation-of-all-words/)|[code](https://github.com/Iplaylf2/LeetCodePlay/tree/master/code/substring-with-concatenation-of-all-words)||
-|[sudoku solver](https://leetcode-cn.com/problems/sudoku-solver/)|[code](https://github.com/Iplaylf2/LeetCodePlay/tree/master/code/sudoku-solver)|[跳过，应该有更...](https://github.com/Iplaylf2/LeetCodePlay/tree/master/code/sudoku-solver/remark.txt)|
+|[sudoku solver](https://leetcode-cn.com/problems/sudoku-solver/)|[code](https://github.com/Iplaylf2/LeetCodePlay/tree/master/code/sudoku-solver)|推理加试错，完成！|
 |[swap nodes in pairs](https://leetcode-cn.com/problems/swap-nodes-in-pairs/)|[code](https://github.com/Iplaylf2/LeetCodePlay/tree/master/code/swap-nodes-in-pairs)||
 |[two sum](https://leetcode-cn.com/problems/two-sum/)|[code](https://github.com/Iplaylf2/LeetCodePlay/tree/master/code/two-sum)||
 |[valid parentheses](https://leetcode-cn.com/problems/valid-parentheses/)|[code](https://github.com/Iplaylf2/LeetCodePlay/tree/master/code/valid-parentheses)||
