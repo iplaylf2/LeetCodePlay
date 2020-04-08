@@ -776,6 +776,10 @@ class LockedCandidateStrategy {
 
         this.fix(index, digit);
       } else {
+        if (block === index$block[row * 9 + c]) {
+          continue;
+        }
+
         this.columnLockedMap[columnLockedIndex] = rowIndexBitmap;
       }
     }
@@ -785,10 +789,6 @@ class LockedCandidateStrategy {
 
     for (var t = 0; t !== 3; t++) {
       const b = floorOffset + t;
-
-      if (b === block) {
-        continue;
-      }
 
       const blockLockedIndex = LockedCandidateStrategy.$index(b, digit);
       const inBlockIndexBitmap =
@@ -807,6 +807,10 @@ class LockedCandidateStrategy {
 
         this.fix(index, digit);
       } else {
+        if (block === b) {
+          continue;
+        }
+
         const [alreadyClaiming] = LockedCandidateStrategy.tryClaiming(
           this.blockLockedMap[blockLockedIndex]
         );
@@ -856,6 +860,10 @@ class LockedCandidateStrategy {
 
       switch (rowIndex) {
         case wrongBit:
+          if (block === index$block[row * 9 + c]) {
+            continue;
+          }
+
           return [SudokuState.wrong];
         case notSingle:
           this.columnLockedMap[columnLockedIndex] = rowIndexBitmap;
@@ -880,10 +888,6 @@ class LockedCandidateStrategy {
     for (var t = 0; t !== 3; t++) {
       const b = floorOffset + t;
 
-      if (b === block) {
-        continue;
-      }
-
       const blockLockedIndex = LockedCandidateStrategy.$index(b, digit);
       if (this.blockLockedMap[blockLockedIndex] === 0) {
         continue;
@@ -896,6 +900,10 @@ class LockedCandidateStrategy {
 
       switch (inBlockIndex) {
         case wrongBit:
+          if (block === b) {
+            continue;
+          }
+
           return [SudokuState.wrong];
         case notSingle:
           const [alreadyClaiming] = LockedCandidateStrategy.tryClaiming(
@@ -964,6 +972,10 @@ class LockedCandidateStrategy {
 
         this.fix(index, digit);
       } else {
+        if (block === index$block[r * 9 + column]) {
+          continue;
+        }
+
         this.rowLockedMap[rowLockedIndex] = columnIndexBitmap;
       }
     }
@@ -973,10 +985,6 @@ class LockedCandidateStrategy {
 
     for (var f = 0; f !== 3; f++) {
       const b = f * 3 + tower;
-
-      if (b === block) {
-        continue;
-      }
 
       const blockLockedIndex = LockedCandidateStrategy.$index(b, digit);
       const inBlockIndexBitmap =
@@ -995,6 +1003,10 @@ class LockedCandidateStrategy {
 
         this.fix(index, digit);
       } else {
+        if (block === b) {
+          continue;
+        }
+
         const [alreadyClaiming] = LockedCandidateStrategy.tryClaiming(
           this.blockLockedMap[blockLockedIndex]
         );
@@ -1044,6 +1056,10 @@ class LockedCandidateStrategy {
 
       switch (columnIndex) {
         case wrongBit:
+          if (block === index$block[r * 9 + column]) {
+            continue;
+          }
+          
           return [SudokuState.wrong];
         case notSingle:
           this.rowLockedMap[rowLockedIndex] = columnIndexBitmap;
@@ -1068,10 +1084,6 @@ class LockedCandidateStrategy {
     for (var f = 0; f !== 3; f++) {
       const b = f * 3 + tower;
 
-      if (b === block) {
-        continue;
-      }
-
       const blockLockedIndex = LockedCandidateStrategy.$index(b, digit);
       if (this.blockLockedMap[blockLockedIndex] === 0) {
         continue;
@@ -1084,6 +1096,10 @@ class LockedCandidateStrategy {
 
       switch (inBlockIndex) {
         case wrongBit:
+          if (block === b) {
+            continue;
+          }
+
           return [SudokuState.wrong];
         case notSingle:
           const [alreadyClaiming] = LockedCandidateStrategy.tryClaiming(
