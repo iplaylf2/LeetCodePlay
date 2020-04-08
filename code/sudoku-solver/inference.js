@@ -40,7 +40,7 @@ var solveSudoku = function (board) {
 
 class SudokuState {
   static create(board) {
-    const grid = $9x9Slot.slice();
+    const grid = $9X9Zero.slice();
     const blankSet = new Set();
 
     const valueList = [];
@@ -64,11 +64,13 @@ class SudokuState {
       return [true, new SudokuState(grid)];
     }
 
-    const hiddenStrategy = HiddenStrategy.create(blankSet);
-    const lockedCandidateStrategy = LockedCandidateStrategy.create(blankSet);
+    const hiddenStrategy = HiddenStrategy.create(grid, blankSet);
+    const lockedCandidateStrategy = LockedCandidateStrategy.create(
+      grid,
+      blankSet
+    );
 
     var _valueList = hiddenStrategy.hiddenReliably(valueList);
-    this.fill(grid, _valueList);
 
     if (blankSet.size === 0) {
       return [true, new SudokuState(grid)];
@@ -79,7 +81,6 @@ class SudokuState {
     var [complete, _valueList] = lockedCandidateStrategy.lockReliably(
       valueList
     );
-    this.fill(grid, _valueList);
 
     if (complete) {
       return [true, new SudokuState(grid)];
@@ -93,7 +94,6 @@ class SudokuState {
         break;
       }
 
-      this.fill(grid, valueList$b);
       if (blankSet.size === 0) {
         return [true, new SudokuState(grid)];
       }
@@ -106,7 +106,6 @@ class SudokuState {
         break;
       }
 
-      this.fill(grid, valueList$a);
       if (complete) {
         return [true, new SudokuState(grid)];
       }
@@ -116,12 +115,6 @@ class SudokuState {
       false,
       new SudokuState(grid, blankSet, hiddenStrategy, lockedCandidateStrategy),
     ];
-  }
-
-  static fill(grid, valueList) {
-    for (const [index, digit] of valueList) {
-      grid[index] = String(digit);
-    }
   }
 
   // static complete = 0;
@@ -161,7 +154,6 @@ class SudokuState {
         break;
       }
 
-      SudokuState.fill(this.grid, valueList$b);
       if (this.blankSet.size === 0) {
         return SudokuState.complete;
       }
@@ -172,10 +164,8 @@ class SudokuState {
 
       switch (status) {
         case SudokuState.complete:
-          SudokuState.fill(this.grid, valueList$a);
           return status;
         case SudokuState.incomplete:
-          SudokuState.fill(this.grid, valueList$a);
           break;
         case SudokuState.wrong:
           return status;
@@ -233,7 +223,7 @@ class SudokuState {
 
     const newState = this.clone();
     newState.blankSet.delete(min$index);
-    newState.grid[min$index] = String(min$digit);
+    newState.grid[min$index] = min$digit;
 
     return [newState, min$index, min$digit];
   }
@@ -261,7 +251,7 @@ class SudokuState {
 
     const newState = this.clone();
     newState.blankSet.delete(index);
-    newState.grid[index] = String(digit);
+    newState.grid[index] = digit;
 
     return [true, newState, index, digit];
   }
@@ -269,7 +259,7 @@ class SudokuState {
   fill(board) {
     for (var r = 0; r !== 9; r++) {
       for (var c = 0; c !== 9; c++) {
-        board[r][c] = this.grid[r * 9 + c];
+        board[r][c] = String(this.grid[r * 9 + c]);
       }
     }
   }
@@ -277,7 +267,7 @@ class SudokuState {
   clone() {
     const newBlankSet = new Set(this.blankSet);
     return new SudokuState(
-      this.grid.slice(),
+      this.grid,
       newBlankSet,
       this.hiddenStrategy.clone(newBlankSet),
       this.lockedCandidateStrategy.clone(newBlankSet)
@@ -290,8 +280,9 @@ SudokuState.incomplete = 1;
 SudokuState.wrong = 2;
 
 class HiddenStrategy {
-  static create(blankSet) {
+  static create(grid, blankSet) {
     return new HiddenStrategy(
+      grid,
       blankSet,
       $9Zero.slice(),
       $9Zero.slice(),
@@ -299,7 +290,11 @@ class HiddenStrategy {
     );
   }
 
-  constructor(blankSet, rowMark, columnMark, blockMark) {
+  constructor(grid, blankSet, rowMark, columnMark, blockMark) {
+    /**
+     * @type {number[]}
+     */
+    this.grid = grid;
     /**
      * @type {Set<number>}
      */
@@ -335,8 +330,10 @@ class HiddenStrategy {
           case notSingle:
             break;
           default:
-            this.mark(index, digit);
             this.blankSet.delete(index);
+            this.grid[index] = digit;
+
+            this.mark(index, digit);
             valueList.push([index, digit]);
 
             noChange = false;
@@ -370,8 +367,10 @@ class HiddenStrategy {
           case notSingle:
             break;
           default:
-            this.mark(index, digit);
             this.blankSet.delete(index);
+            this.grid[index] = digit;
+
+            this.mark(index, digit);
             valueList.push([index, digit]);
 
             noChange = false;
@@ -417,6 +416,7 @@ class HiddenStrategy {
 
   clone(blankSet) {
     return new HiddenStrategy(
+      this.grid,
       blankSet,
       this.rowMark.slice(),
       this.columnMark.slice(),
@@ -426,12 +426,13 @@ class HiddenStrategy {
 }
 
 class LockedCandidateStrategy {
-  static create(blankSet) {
+  static create(grid, blankSet) {
     const rowLockedMap = this.$9x9Fix.slice(),
       columnLockedMap = this.$9x9Fix.slice(),
       blockLockedMap = this.$9x9Fix.slice();
 
     return new LockedCandidateStrategy(
+      grid,
       blankSet,
       rowLockedMap,
       columnLockedMap,
@@ -487,7 +488,11 @@ class LockedCandidateStrategy {
   // static rowClaiming = 1;
   // static columnClaiming = 2;
 
-  constructor(blankSet, rowLockedMap, columnLockedMap, blockLockedMap) {
+  constructor(grid, blankSet, rowLockedMap, columnLockedMap, blockLockedMap) {
+    /**
+     * @type {number[]}
+     */
+    this.grid = grid;
     /**
      * @type {Set<number>}
      */
@@ -766,8 +771,10 @@ class LockedCandidateStrategy {
         default:
           const index = rowIndex * 9 + c;
 
-          this.fix(index, digit);
           this.blankSet.delete(index);
+          this.grid[index] = digit;
+
+          this.fix(index, digit);
           valueList.push([index, digit]);
           break;
       }
@@ -821,8 +828,10 @@ class LockedCandidateStrategy {
         default:
           const index = block$indexList[b][inBlockIndex];
 
-          this.fix(index, digit);
           this.blankSet.delete(index);
+          this.grid[index] = digit;
+
+          this.fix(index, digit);
           valueList.push([index, digit]);
           break;
       }
@@ -860,8 +869,10 @@ class LockedCandidateStrategy {
         default:
           const index = rowIndex * 9 + c;
 
-          this.fix(index, digit);
           this.blankSet.delete(index);
+          this.grid[index] = digit;
+
+          this.fix(index, digit);
           valueList.push([index, digit]);
           break;
       }
@@ -920,8 +931,10 @@ class LockedCandidateStrategy {
         default:
           const index = block$indexList[b][inBlockIndex];
 
-          this.fix(index, digit);
           this.blankSet.delete(index);
+          this.grid[index] = digit;
+
+          this.fix(index, digit);
           valueList.push([index, digit]);
           break;
       }
@@ -954,8 +967,10 @@ class LockedCandidateStrategy {
         default:
           const index = r * 9 + columnIndex;
 
-          this.fix(index, digit);
           this.blankSet.delete(index);
+          this.grid[index] = digit;
+
+          this.fix(index, digit);
           valueList.push([index, digit]);
           break;
       }
@@ -1009,8 +1024,10 @@ class LockedCandidateStrategy {
         default:
           const index = block$indexList[b][inBlockIndex];
 
-          this.fix(index, digit);
           this.blankSet.delete(index);
+          this.grid[index] = digit;
+
+          this.fix(index, digit);
           valueList.push([index, digit]);
           break;
       }
@@ -1048,8 +1065,10 @@ class LockedCandidateStrategy {
         default:
           const index = r * 9 + columnIndex;
 
-          this.fix(index, digit);
           this.blankSet.delete(index);
+          this.grid[index] = digit;
+
+          this.fix(index, digit);
           valueList.push([index, digit]);
           break;
       }
@@ -1108,8 +1127,10 @@ class LockedCandidateStrategy {
         default:
           const index = block$indexList[b][inBlockIndex];
 
-          this.fix(index, digit);
           this.blankSet.delete(index);
+          this.grid[index] = digit;
+
+          this.fix(index, digit);
           valueList.push([index, digit]);
           break;
       }
@@ -1120,6 +1141,7 @@ class LockedCandidateStrategy {
 
   clone(blankSet) {
     return new LockedCandidateStrategy(
+      this.grid,
       blankSet,
       this.rowLockedMap.slice(),
       this.columnLockedMap.slice(),
@@ -1169,7 +1191,6 @@ const singleBitmap = function (bitmap) {
 
 const $9Zero = new Array(9).fill(0);
 const $9X9Zero = new Array(9 * 9).fill(0);
-const $9x9Slot = new Array(9 * 9).fill(".");
 
 const index$row = $9X9Zero.slice(),
   index$column = $9X9Zero.slice(),
