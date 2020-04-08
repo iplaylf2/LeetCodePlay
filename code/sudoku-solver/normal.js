@@ -54,13 +54,12 @@ var solveSudoku = function (board) {
       i--;
 
       const index = blankList[i];
+      const digit = digitStack[i] ;
+      const bit = 0b1 << digit;
 
       const r = index$row[index],
         c = index$column[index],
         b = index$block[index];
-
-      const digit = board[r][c];
-      const bit = 0b1 << digit;
 
       rowMarkMap[r] ^= bit;
       columnMarkMap[c] ^= bit;
