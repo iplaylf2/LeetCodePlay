@@ -184,54 +184,78 @@ class SudokuState {
   }
 
   tryCell() {
-    const [index] = this.blankSet;
-    var bitmap = this.hiddenStrategy.getMarkBitmap(index);
+    var min$ = 10,
+      min$index = 0,
+      min$bitmap = 0,
+      min$digit = 0;
 
-    for (var digit = 1; digit <= 9; digit++) {
-      bitmap = bitmap >> 1;
-      if ((bitmap & 1) === 1) {
+    for (const index of this.blankSet) {
+      const bitmap = this.hiddenStrategy.getMarkBitmap(index);
+
+      var count = 0,
+        digit = 0;
+      for (var bit = 0b10, d = 1; d !== 10; bit = bit << 1, d++) {
+        if ((bitmap & bit) !== 0) {
+          count++;
+          digit = d;
+        }
+      }
+
+      if (count === 2) {
+        min$index = index;
+        min$bitmap = bitmap;
+        min$digit = digit;
         break;
+      }
+
+      if (count < min$) {
+        min$ = count;
+        min$index = index;
+        min$bitmap = bitmap;
+        min$digit = digit;
       }
     }
 
     /**
      * @type {number}
      */
-    this.$tryIndex = index;
+    this.$tryIndex = min$index;
     /**
      * @type {number}
      */
-    this.$tryBitmap = bitmap;
+    this.$tryBitmap = min$bitmap;
     /**
      * @type {number}
      */
-    this.$tryDigit = digit;
+    this.$tryDigit = min$digit;
 
     const newState = this.clone();
-    newState.blankSet.delete(index);
-    newState.grid[index] = String(digit);
+    newState.blankSet.delete(min$index);
+    newState.grid[min$index] = String(min$digit);
 
-    return [newState, index, digit];
+    return [newState, min$index, min$digit];
   }
 
   tryDigit() {
-    const index = this.$tryIndex;
-    var digit = this.$tryDigit;
-    var bitmap = this.$tryBitmap;
+    const index = this.$tryIndex,
+      bitmap = this.$tryBitmap,
+      testDigit = this.$tryDigit - 1;
 
-    for (digit++; digit <= 9; digit++) {
-      bitmap = bitmap >> 1;
-      if ((bitmap & 1) === 1) {
+    for (
+      var bit = 0b1 << testDigit, digit = testDigit;
+      digit !== 0;
+      bit = bit >> 1, digit--
+    ) {
+      if ((bitmap & bit) !== 0) {
         break;
       }
     }
 
-    if (digit === 10) {
+    if (digit === 0) {
       return [false];
     }
 
     this.$tryDigit = digit;
-    this.$tryBitmap = bitmap;
 
     const newState = this.clone();
     newState.blankSet.delete(index);
