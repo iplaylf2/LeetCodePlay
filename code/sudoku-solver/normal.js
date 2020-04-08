@@ -28,9 +28,11 @@ var solveSudoku = function (board) {
     }
   }
 
-  const digitStack = new Array(blankList.length).fill(0);
+  const $length = blankList.length;
+  
+  const digitList = new Array($length).fill(0);
 
-  for (var i = 0; i !== blankList.length; ) {
+  for (var i = 0; i !== $length; ) {
     const index = blankList[i];
 
     const r = index$row[index],
@@ -40,7 +42,7 @@ var solveSudoku = function (board) {
     const bitmap = rowMarkMap[r] | columnMarkMap[c] | blockMarkMap[b];
 
     for (
-      var digit = digitStack[i] + 1, bit = 0b1 << digit;
+      var digit = digitList[i] + 1, bit = 0b1 << digit;
       digit !== 10;
       digit++, bit = bit << 1
     ) {
@@ -50,11 +52,11 @@ var solveSudoku = function (board) {
     }
 
     if (digit === 10) {
-      digitStack[i] = 0;
+      digitList[i] = 0;
       i--;
 
       const index = blankList[i];
-      const digit = digitStack[i] ;
+      const digit = digitList[i];
       const bit = 0b1 << digit;
 
       const r = index$row[index],
@@ -65,15 +67,23 @@ var solveSudoku = function (board) {
       columnMarkMap[c] ^= bit;
       blockMarkMap[b] ^= bit;
     } else {
-      digitStack[i] = digit;
+      digitList[i] = digit;
       i++;
-
-      board[r][c] = String(digit);
 
       rowMarkMap[r] |= bit;
       columnMarkMap[c] |= bit;
       blockMarkMap[b] |= bit;
     }
+  }
+
+  for (var i = 0; i !== $length; i++) {
+    const index = blankList[i];
+    const digit = digitList[i];
+
+    const r = index$row[index],
+      c = index$column[index];
+
+    board[r][c] = String(digit);
   }
 };
 
