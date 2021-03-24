@@ -1,6 +1,6 @@
 
 按顺序做题，力求当前语言下的最优解。  
-目前进度为41条。  
+目前进度为42条。  
 
 |leetcode-cn|my code|remark|
 |:---------:|:-----:|:----:|
@@ -41,6 +41,7 @@
 |[substring with concatenation of all words](https://leetcode-cn.com/problems/substring-with-concatenation-of-all-words/)|[code](https://github.com/Iplaylf2/LeetCodePlay/tree/master/code/substring-with-concatenation-of-all-words)||
 |[sudoku solver](https://leetcode-cn.com/problems/sudoku-solver/)|[code](https://github.com/Iplaylf2/LeetCodePlay/tree/master/code/sudoku-solver)|推理加试错，完成！|
 |[swap nodes in pairs](https://leetcode-cn.com/problems/swap-nodes-in-pairs/)|[code](https://github.com/Iplaylf2/LeetCodePlay/tree/master/code/swap-nodes-in-pairs)||
+|[trapping rain water](https://leetcode-cn.com/problems/trapping-rain-water/)|[code](https://github.com/Iplaylf2/LeetCodePlay/tree/master/code/trapping-rain-water)||
 |[two sum](https://leetcode-cn.com/problems/two-sum/)|[code](https://github.com/Iplaylf2/LeetCodePlay/tree/master/code/two-sum)||
 |[valid parentheses](https://leetcode-cn.com/problems/valid-parentheses/)|[code](https://github.com/Iplaylf2/LeetCodePlay/tree/master/code/valid-parentheses)||
 |[valid sudoku](https://leetcode-cn.com/problems/valid-sudoku/)|[code](https://github.com/Iplaylf2/LeetCodePlay/tree/master/code/valid-sudoku)||
